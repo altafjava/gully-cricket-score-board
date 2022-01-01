@@ -14,6 +14,7 @@ import Radio from '@mui/material/Radio'
 import RadioGroup from '@mui/material/RadioGroup'
 import { Formik } from 'formik'
 import React from 'react'
+import { useHistory } from 'react-router-dom'
 import * as Yup from 'yup'
 
 const useStyles = makeStyles((theme) => ({
@@ -61,9 +62,11 @@ const useStyles = makeStyles((theme) => ({
     textAlign: 'center',
   },
 }))
-const VerticalStepper = () => {
+const HorizontalStepper = () => {
+  const history = useHistory()
   const classes = useStyles()
   const [activeStep, setActiveStep] = React.useState(0)
+
   const [isSubmitting, setSubmitting] = React.useState(false)
   const [team1Players, setTeam1Players] = React.useState([Date.now().toString()])
   const [team2Players, setTeam2Players] = React.useState([Date.now().toString()])
@@ -133,14 +136,15 @@ const VerticalStepper = () => {
             actions.setSubmitting(false)
             if (isLastStep()) {
               setSubmitting(true)
-              const formData = document.getElementById('form__data')
-              formData.innerText = JSON.stringify(values, null, 2)
+              const data = JSON.stringify(values)
+              localStorage.setItem('data', data)
+              history.push('/score')
               setSubmitting(false)
             }
           }}
         >
-          {(props) => {
-            const { values, touched, errors, handleChange, handleBlur, handleSubmit, handleReset, setFieldValue } = props
+          {(prp) => {
+            const { values, touched, errors, handleChange, handleBlur, handleSubmit, handleReset, setFieldValue } = prp
             // console.log('errors=', errors)
             // console.log('touched=', touched)
             return (
@@ -315,4 +319,4 @@ const VerticalStepper = () => {
   )
 }
 
-export default VerticalStepper
+export default HorizontalStepper
