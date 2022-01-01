@@ -1,3 +1,5 @@
+import DeleteIcon from '@mui/icons-material/Delete'
+import { IconButton } from '@mui/material'
 import React, { useState } from 'react'
 import './ScoreBoard.css'
 
@@ -51,6 +53,9 @@ const ScoreBoard = () => {
             {runs.map((run, i) => (
               <div key={i}>{run}</div>
             ))}
+            <IconButton color='warning' size='small' style={{ padding: '0px' }}>
+              <DeleteIcon />
+            </IconButton>
           </div>
         </div>
         <div className='score-types-container'>
@@ -89,6 +94,46 @@ const ScoreBoard = () => {
               </tr>
             </tbody>
           </table>
+        </div>
+        <div className='recent-over-container'>
+          <div className='recent-over-text'>Recent Overs</div>
+          <div className='recent-over-details'>
+            <table>
+              <tbody>
+                <tr>
+                  <td>2.</td>
+                  <td>Sonu:</td>
+                  <td>
+                    <div className='recent-over-runs'>
+                      {runs.map((run, i) => (
+                        <div key={i}>{run}</div>
+                      ))}
+                    </div>
+                  </td>
+                  <td className='recent-over-total-run'>
+                    <div>23</div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>1.</td>
+                  <td>Shahbaz:</td>
+                  <td>
+                    <div className='recent-over-runs'>
+                      {runs.map((run, i) => (
+                        <div key={i}>{run}</div>
+                      ))}
+                      <div>0</div>
+                      <div>W</div>
+                      <div>1</div>
+                    </div>
+                  </td>
+                  <td className='recent-over-total-run'>
+                    <div>3</div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

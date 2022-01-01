@@ -18,7 +18,7 @@
   justify-content: space-between;
   font-size: 1.05rem;
   font-weight: bold;
-  padding: 8px;
+  padding: 4px;
 }
 .batting-container {
   display: flex;
@@ -77,4 +77,29 @@ table thead {
 .score-type-button:active {
   color: white;
   background-color: #3f51b5;
+}
+.recent-over-text {
+  background-color: #3f51b517;
+  padding: 8px;
+}
+.recent-over-details {
+  /* display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 8px; */
+}
+.recent-over-details table {
+  width: 100%;
+}
+.recent-over-runs {
+  display: flex;
+  justify-content: space-around;
+  gap: 4px;
+  padding: 8px;
+}
+.recent-over-total-run {
+  text-align: center;
+  border-left: 1px solid #ccc;
+  font-weight: bold;
+  padding: 0 2px;
 }
