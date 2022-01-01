@@ -7,6 +7,11 @@ import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
+import FormControl from '@mui/material/FormControl'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import FormLabel from '@mui/material/FormLabel'
+import Radio from '@mui/material/Radio'
+import RadioGroup from '@mui/material/RadioGroup'
 import { Formik } from 'formik'
 import React from 'react'
 import * as Yup from 'yup'
@@ -89,8 +94,7 @@ const VerticalStepper = () => {
     team2: '',
     team1Players: [],
     team2Players: [],
-    address: '',
-    description: '',
+    batting: '',
   }
   const validationSchema = [
     Yup.object().shape({
@@ -101,7 +105,7 @@ const VerticalStepper = () => {
       team1Players: Yup.array().of(Yup.string().required('Player Name is required')),
     }),
     Yup.object().shape({
-      address: Yup.string().required('Address is required'),
+      batting: Yup.string().required('Please choose who is Batting'),
     }),
   ]
   const currentValidationSchema = validationSchema[activeStep]
@@ -136,8 +140,7 @@ const VerticalStepper = () => {
           }}
         >
           {(props) => {
-            const { values, touched, errors, handleChange, handleBlur, handleSubmit, handleReset } = props
-            console.log('values=', values)
+            const { values, touched, errors, handleChange, handleBlur, handleSubmit, handleReset, setFieldValue } = props
             // console.log('errors=', errors)
             // console.log('touched=', touched)
             return (
@@ -188,7 +191,8 @@ const VerticalStepper = () => {
                               <TextField
                                 id={timestamp}
                                 name={`team1Players.${index}`}
-                                label='Player Name*'
+                                label='Player Name'
+                                value={values.team1Players[index]}
                                 onChange={handleChange}
                                 onBlur={handleBlur}
                                 className={classes.textfieldWidth}
@@ -224,9 +228,9 @@ const VerticalStepper = () => {
                               <TextField
                                 id={timestamp}
                                 name={`team2Players.${index}`}
-                                label='Player Name*'
+                                label='Player Name'
+                                value={values.team2Players[index]}
                                 onChange={handleChange}
-                                value={team1Players.playerId}
                                 onBlur={handleBlur}
                                 className={classes.textfieldWidth}
                               />
@@ -256,28 +260,19 @@ const VerticalStepper = () => {
                   {activeStep === 2 && (
                     <div>
                       <div className={classes.formGroup}>
-                        <TextField
-                          id='address'
-                          name='address'
-                          label='Address*'
-                          value={values.address}
-                          onChange={handleChange}
-                          onBlur={handleBlur}
-                          helperText={errors.address && touched.address && errors.address}
-                          error={errors.address && touched.address}
-                          className={classes.textfieldWidth}
-                        />
-                      </div>
-                      <div className={classes.formGroup}>
-                        <TextField
-                          id='description'
-                          name='description'
-                          label='Description'
-                          value={values.description}
-                          onChange={handleChange}
-                          onBlur={handleBlur}
-                          className={classes.textfieldWidth}
-                        />
+                        <FormControl component='fieldset'>
+                          <FormLabel component='legend'>Who is Batting?</FormLabel>
+                          <RadioGroup
+                            name='batting'
+                            value={values.batting.toString()}
+                            onChange={(event) => {
+                              setFieldValue('batting', event.currentTarget.value)
+                            }}
+                          >
+                            <FormControlLabel value={values.team1} control={<Radio />} label={values.team1} />
+                            <FormControlLabel value={values.team2} control={<Radio />} label={values.team2} />
+                          </RadioGroup>
+                        </FormControl>
                       </div>
                     </div>
                   )}
