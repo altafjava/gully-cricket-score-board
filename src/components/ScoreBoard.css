@@ -1,0 +1,80 @@
+.container {
+  font-family: 'Roboto';
+}
+.inning {
+  background: #3f51b5;
+  color: white;
+  padding: 0.5rem;
+  font-size: 1.2rem;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+.score-container {
+  margin: 0.5rem;
+}
+.score {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1.05rem;
+  font-weight: bold;
+  padding: 8px;
+}
+.batting-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin: 0.8rem 0;
+}
+.batting-container table {
+  width: 100%;
+  border: none;
+  border-spacing: unset;
+}
+table thead {
+  padding: 8px;
+  background-color: #3f51b517;
+}
+.batting-container table td {
+  padding: 8px;
+}
+.bowler-container {
+  margin: 0.8rem 0;
+}
+.bowler {
+  background-color: #3f51b517;
+  padding: 8px;
+}
+.bowler-runs {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px;
+}
+.score-types-container {
+  margin: 1rem 0;
+  text-align: center;
+}
+.score-types-container table {
+  width: 100%;
+  height: 100%;
+  border-spacing: 8px;
+}
+.score-types-container table .score-types {
+  background: #3f51b517;
+}
+.score-types-container table td {
+  border: 1px solid #3f51b5;
+}
+.score-type-button {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 8px;
+  outline: none;
+  border: none;
+}
+.score-type-button:active {
+  color: white;
+  background-color: #3f51b5;
+}
