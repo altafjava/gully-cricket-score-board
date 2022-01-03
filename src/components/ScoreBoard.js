@@ -17,7 +17,7 @@ const ScoreBoard = () => {
   const [ballCount, setBallCount] = useState(0)
   const [overCount, setOverCount] = useState(0)
   const [bowlers, setBowlers] = useState({})
-  const [overs, setOvers] = useState([])
+  const [recentOvers, setRecentOvers] = useState([])
   const [batter1, setBatter1] = useState('')
   const [batter2, setBatter2] = useState('')
   const [bowler, setBowler] = useState('')
@@ -109,6 +109,11 @@ const ScoreBoard = () => {
     bowlerNameElement.disabled = false
   }
   const handleZeroRun = () => {
+    if (ballCount === 5) {
+      setTotalOvers(overCount + 1)
+    } else {
+      setTotalOvers(Math.round((totalOvers + 0.1) * 10) / 10)
+    }
     setCurrentRunStack((state) => [...state, 0])
     setBallCount(ballCount + 1)
     if (ballCount === 5) {
@@ -118,6 +123,11 @@ const ScoreBoard = () => {
     }
   }
   const handleOneRun = () => {
+    if (ballCount === 5) {
+      setTotalOvers(overCount + 1)
+    } else {
+      setTotalOvers(Math.round((totalOvers + 0.1) * 10) / 10)
+    }
     setBallCount(ballCount + 1)
     setCurrentRunStack((state) => [...state, 1])
     setTotalRuns(totalRuns + 1)
@@ -129,6 +139,11 @@ const ScoreBoard = () => {
     }
   }
   const handleTwoRun = () => {
+    if (ballCount === 5) {
+      setTotalOvers(overCount + 1)
+    } else {
+      setTotalOvers(Math.round((totalOvers + 0.1) * 10) / 10)
+    }
     setBallCount(ballCount + 1)
     setCurrentRunStack((state) => [...state, 2])
     setTotalRuns(totalRuns + 2)
@@ -140,6 +155,11 @@ const ScoreBoard = () => {
     }
   }
   const handleThreeRun = () => {
+    if (ballCount === 5) {
+      setTotalOvers(overCount + 1)
+    } else {
+      setTotalOvers(Math.round((totalOvers + 0.1) * 10) / 10)
+    }
     setBallCount(ballCount + 1)
     setCurrentRunStack((state) => [...state, 3])
     setTotalRuns(totalRuns + 3)
@@ -151,6 +171,11 @@ const ScoreBoard = () => {
     }
   }
   const handleFourRun = () => {
+    if (ballCount === 5) {
+      setTotalOvers(overCount + 1)
+    } else {
+      setTotalOvers(Math.round((totalOvers + 0.1) * 10) / 10)
+    }
     setBallCount(ballCount + 1)
     setCurrentRunStack((state) => [...state, 4])
     setTotalRuns(totalRuns + 4)
@@ -162,6 +187,11 @@ const ScoreBoard = () => {
     }
   }
   const handleSixRun = () => {
+    if (ballCount === 5) {
+      setTotalOvers(overCount + 1)
+    } else {
+      setTotalOvers(Math.round((totalOvers + 0.1) * 10) / 10)
+    }
     setBallCount(ballCount + 1)
     setCurrentRunStack((state) => [...state, 6])
     setTotalRuns(totalRuns + 6)
@@ -173,6 +203,11 @@ const ScoreBoard = () => {
     }
   }
   const handleWicket = () => {
+    if (ballCount === 5) {
+      setTotalOvers(overCount + 1)
+    } else {
+      setTotalOvers(Math.round((totalOvers + 0.1) * 10) / 10)
+    }
     setCurrentRunStack((state) => [...state, 'W'])
     setBallCount(ballCount + 1)
     if (ballCount === 5) {
@@ -195,11 +230,11 @@ const ScoreBoard = () => {
     bowlerNameElement.value = ''
     setBowler('')
     disableAllScoreButtons()
-    setOvers((state) => [...state, { overNo: overCount + 1, bowler: bowler, runs: runsByOverParam, stack: currentRunStackParam }])
+    setRecentOvers((state) => [...state, { overNo: overCount + 1, bowler: bowler, runs: runsByOverParam, stack: currentRunStackParam }])
     setCurrentRunStack([])
     setRunsByOver(0)
     setBallCount(0)
-    setOverCount(overCount + 1)
+    setOverCount(overCount + 1.0)
   }
   const disableAllScoreButtons = () => {
     const scoreTypesButtons = document.querySelectorAll('.score-types-button')
@@ -348,7 +383,7 @@ const ScoreBoard = () => {
           <div className='recent-over-details'>
             <table>
               <tbody>
-                {overs.map((over, i) => (
+                {recentOvers.map((over, i) => (
                   <tr key={i}>
                     <td>{over.overNo}.</td>
                     <td>{over.bowler}:</td>
