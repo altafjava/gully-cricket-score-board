@@ -95,8 +95,8 @@ const HorizontalStepper = () => {
   const initialValues = {
     team1: '',
     team2: '',
-    team1Players: [],
-    team2Players: [],
+    team1Players: [''],
+    team2Players: [''],
     batting: '',
   }
   const validationSchema = [

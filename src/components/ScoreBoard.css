@@ -66,7 +66,7 @@ table thead {
 .score-types-container table td {
   border: 1px solid #3f51b5;
 }
-.score-type-button {
+.score-types-button {
   display: block;
   width: 100%;
   height: 100%;
@@ -74,9 +74,18 @@ table thead {
   outline: none;
   border: none;
 }
-.score-type-button:active {
+.score-types-button:active {
   color: white;
   background-color: #3f51b5;
+}
+.icon-button {
+  padding: 0 4px !important;
+}
+.icon-size {
+  font-size: 1rem !important;
+}
+.batter-name {
+  max-width: 6rem;
 }
 .recent-over-text {
   background-color: #3f51b517;
