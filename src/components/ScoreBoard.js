@@ -12,7 +12,6 @@ const ScoreBoard = () => {
   const [runsByOver, setRunsByOver] = useState(0)
   const [totalWickets, setTotalWickets] = useState(0)
   const [totalOvers, setTotalOvers] = useState(0)
-  const [currentRunRate, setCurrentRunRate] = useState(0)
   const [batters, setBatters] = useState([])
   const [ballCount, setBallCount] = useState(0)
   const [overCount, setOverCount] = useState(0)
@@ -252,6 +251,8 @@ const ScoreBoard = () => {
   if (batter1 !== '' && batter2 !== '' && bowler !== '') {
     enableAllScoreButtons()
   }
+  const overs = overCount + ballCount / 6
+  const crr = (totalRuns / overs).toFixed(2)
   return (
     <div className='container'>
       <div className='inning'>
@@ -262,7 +263,7 @@ const ScoreBoard = () => {
           <div>
             {team1} : {totalRuns}/{totalWickets} ({totalOvers})
           </div>
-          <div>CRR : {currentRunRate}</div>
+          <div>CRR : {isNaN(crr) ? 0 : crr}</div>
         </div>
         <div className='batting-container'>
           <table>
