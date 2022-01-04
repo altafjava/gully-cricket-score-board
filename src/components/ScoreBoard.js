@@ -142,10 +142,20 @@ const ScoreBoard = () => {
         const updatedRun = state.run + run
         const updatedBall = state.ball + 1
         const sr = Math.round((updatedRun / updatedBall) * 100 * 100) / 100
+        let four = state.four
+        if (run === 4) {
+          four = four + 1
+        }
+        let six = state.six
+        if (run === 6) {
+          six = six + 1
+        }
         return {
           ...state,
           run: updatedRun,
           ball: updatedBall,
+          four: four,
+          six: six,
           strikeRate: sr,
         }
       })
@@ -164,10 +174,20 @@ const ScoreBoard = () => {
         const updatedRun = state.run + run
         const updatedBall = state.ball + 1
         const sr = Math.round((updatedRun / updatedBall) * 100 * 100) / 100
+        let four = state.four
+        if (run === 4) {
+          four = four + 1
+        }
+        let six = state.six
+        if (run === 6) {
+          six = six + 1
+        }
         return {
           ...state,
           run: updatedRun,
           ball: updatedBall,
+          four: four,
+          six: six,
           strikeRate: sr,
         }
       })
@@ -235,8 +255,6 @@ const ScoreBoard = () => {
   }
   const overs = overCount + ballCount / 6
   const crr = (totalRuns / overs).toFixed(2)
-  console.log('batter1=', batter1)
-  console.log('batter2=', batter2)
   return (
     <div className='container'>
       <div className='inning'>
