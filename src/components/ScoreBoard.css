@@ -36,7 +36,7 @@ table thead {
   background-color: #3f51b517;
 }
 .batting-container table td {
-  padding: 8px;
+  padding: 8px 4px;
 }
 .bowler-container {
   margin: 0.8rem 0;
@@ -83,6 +83,12 @@ table thead {
 }
 .icon-size {
   font-size: 1rem !important;
+}
+.strike {
+  padding-right: 2px;
+}
+.non-strike {
+  padding-left: 0.56rem;
 }
 .batter-name {
   max-width: 6rem;

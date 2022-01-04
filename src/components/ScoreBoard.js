@@ -2,8 +2,8 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
 import { IconButton } from '@mui/material'
 import React, { useState } from 'react'
-import './ScoreBoard.css'
 import MathUtil from '../util/MathUtil'
+import './ScoreBoard.css'
 
 const ScoreBoard = () => {
   const [inning, setInning] = useState(1)
@@ -17,8 +17,8 @@ const ScoreBoard = () => {
   const [overCount, setOverCount] = useState(0)
   const [bowlers, setBowlers] = useState({})
   const [recentOvers, setRecentOvers] = useState([])
-  const [batter1, setBatter1] = useState('')
-  const [batter2, setBatter2] = useState('')
+  const [batter1, setBatter1] = useState({})
+  const [batter2, setBatter2] = useState({})
   const [bowler, setBowler] = useState('')
   const [isBatter1Edited, setBatter1Edited] = useState(false)
   const [isBatter2Edited, setBatter2Edited] = useState(false)
@@ -31,29 +31,30 @@ const ScoreBoard = () => {
     name = name.charAt(0).toUpperCase() + name.slice(1)
     e.target.value = name
     e.target.disabled = true
-    setBatter1(name)
     if (isBatter1Edited) {
-      const index = batters.findIndex((batter) => batter.name === batter1)
-      const filteredArray = batters.filter((batter) => batter.name === batter1)
+      const index = batters.findIndex((batter) => batter.name === batter1.name)
+      const filteredArray = batters.filter((batter) => batter.name === batter1.name)
       const obj = filteredArray[0]
       obj.name = name
       const arr = [...batters]
       arr[index] = obj
       setBatters(arr)
+      setBatter1((state) => ({
+        ...state,
+        name: name,
+      }))
     } else {
       const randomNo = MathUtil.getRandomNo()
-      setBatters((state) => [
-        ...state,
-        {
-          id: name + randomNo,
-          name: name,
-          run: 0,
-          ball: 0,
-          four: 0,
-          six: 0,
-          strikeRate: 0,
-        },
-      ])
+      setBatter1({
+        id: name + randomNo,
+        name: name,
+        run: 0,
+        ball: 0,
+        four: 0,
+        six: 0,
+        strikeRate: 0,
+        onStrike: true,
+      })
     }
   }
   const handleBatter2Blur = (e) => {
@@ -63,27 +64,29 @@ const ScoreBoard = () => {
     e.target.disabled = true
     setBatter2(name)
     if (isBatter2Edited) {
-      const index = batters.findIndex((batter) => batter.name === batter2)
-      const filteredArray = batters.filter((batter) => batter.name === batter2)
+      const index = batters.findIndex((batter) => batter.name === batter2.name)
+      const filteredArray = batters.filter((batter) => batter.name === batter2.name)
       const obj = filteredArray[0]
       obj.name = name
       const arr = [...batters]
       arr[index] = obj
       setBatters(arr)
+      setBatter2((state) => ({
+        ...state,
+        name: name,
+      }))
     } else {
       const randomNo = MathUtil.getRandomNo()
-      setBatters((state) => [
-        ...state,
-        {
-          id: name + randomNo,
-          name: name,
-          run: 0,
-          ball: 0,
-          four: 0,
-          six: 0,
-          strikeRate: 0,
-        },
-      ])
+      setBatter2({
+        id: name + randomNo,
+        name: name,
+        run: 0,
+        ball: 0,
+        four: 0,
+        six: 0,
+        strikeRate: 0,
+        onStrike: false,
+      })
     }
   }
   const handleBowlerBlur = (e) => {
@@ -107,98 +110,77 @@ const ScoreBoard = () => {
     const bowlerNameElement = document.getElementById('bowlerName')
     bowlerNameElement.disabled = false
   }
-  const handleZeroRun = () => {
-    if (ballCount === 5) {
-      setTotalOvers(overCount + 1)
-    } else {
-      setTotalOvers(Math.round((totalOvers + 0.1) * 10) / 10)
-    }
-    setCurrentRunStack((state) => [...state, 0])
-    setBallCount(ballCount + 1)
-    if (ballCount === 5) {
-      const arr = [...currentRunStack]
-      arr.push(0)
-      overCompleted(runsByOver, arr)
-    }
+  const changeStrike = () => {
+    const strikeElement = document.querySelector('.strike')
+    const nonStrikeElement = document.querySelector('.non-strike')
+    strikeElement.textContent = ''
+    strikeElement.className = 'non-strike'
+    nonStrikeElement.textContent = '*'
+    nonStrikeElement.className = 'strike'
   }
-  const handleOneRun = () => {
+  const handleRun = (run) => {
+    setBallCount(ballCount + 1)
+    setCurrentRunStack((state) => [...state, run])
+    setTotalRuns(totalRuns + run)
+    setRunsByOver(runsByOver + run)
     if (ballCount === 5) {
       setTotalOvers(overCount + 1)
+      const arr = [...currentRunStack]
+      arr.push(run)
+      overCompleted(runsByOver + run, arr)
+      if (run % 2 === 0) {
+        changeStrike()
+      }
     } else {
       setTotalOvers(Math.round((totalOvers + 0.1) * 10) / 10)
+      if (run % 2 !== 0) {
+        changeStrike()
+      }
     }
-    setBallCount(ballCount + 1)
-    setCurrentRunStack((state) => [...state, 1])
-    setTotalRuns(totalRuns + 1)
-    setRunsByOver(runsByOver + 1)
-    if (ballCount === 5) {
-      const arr = [...currentRunStack]
-      arr.push(1)
-      overCompleted(runsByOver + 1, arr)
-    }
-  }
-  const handleTwoRun = () => {
-    if (ballCount === 5) {
-      setTotalOvers(overCount + 1)
+    if (batter1.onStrike) {
+      setBatter1((state) => {
+        const updatedRun = state.run + run
+        const updatedBall = state.ball + 1
+        const sr = Math.round((updatedRun / updatedBall) * 100 * 100) / 100
+        return {
+          ...state,
+          run: updatedRun,
+          ball: updatedBall,
+          strikeRate: sr,
+        }
+      })
+      if ((ballCount === 5 && run % 2 === 0) || (ballCount !== 5 && run % 2 !== 0)) {
+        setBatter1((state) => ({
+          ...state,
+          onStrike: !state.onStrike,
+        }))
+        setBatter2((state) => ({
+          ...state,
+          onStrike: !state.onStrike,
+        }))
+      }
     } else {
-      setTotalOvers(Math.round((totalOvers + 0.1) * 10) / 10)
-    }
-    setBallCount(ballCount + 1)
-    setCurrentRunStack((state) => [...state, 2])
-    setTotalRuns(totalRuns + 2)
-    setRunsByOver(runsByOver + 2)
-    if (ballCount === 5) {
-      const arr = [...currentRunStack]
-      arr.push(2)
-      overCompleted(runsByOver + 2, arr)
-    }
-  }
-  const handleThreeRun = () => {
-    if (ballCount === 5) {
-      setTotalOvers(overCount + 1)
-    } else {
-      setTotalOvers(Math.round((totalOvers + 0.1) * 10) / 10)
-    }
-    setBallCount(ballCount + 1)
-    setCurrentRunStack((state) => [...state, 3])
-    setTotalRuns(totalRuns + 3)
-    setRunsByOver(runsByOver + 3)
-    if (ballCount === 5) {
-      const arr = [...currentRunStack]
-      arr.push(3)
-      overCompleted(runsByOver + 3, arr)
-    }
-  }
-  const handleFourRun = () => {
-    if (ballCount === 5) {
-      setTotalOvers(overCount + 1)
-    } else {
-      setTotalOvers(Math.round((totalOvers + 0.1) * 10) / 10)
-    }
-    setBallCount(ballCount + 1)
-    setCurrentRunStack((state) => [...state, 4])
-    setTotalRuns(totalRuns + 4)
-    setRunsByOver(runsByOver + 4)
-    if (ballCount === 5) {
-      const arr = [...currentRunStack]
-      arr.push(4)
-      overCompleted(runsByOver + 4, arr)
-    }
-  }
-  const handleSixRun = () => {
-    if (ballCount === 5) {
-      setTotalOvers(overCount + 1)
-    } else {
-      setTotalOvers(Math.round((totalOvers + 0.1) * 10) / 10)
-    }
-    setBallCount(ballCount + 1)
-    setCurrentRunStack((state) => [...state, 6])
-    setTotalRuns(totalRuns + 6)
-    setRunsByOver(runsByOver + 6)
-    if (ballCount === 5) {
-      const arr = [...currentRunStack]
-      arr.push(6)
-      overCompleted(runsByOver + 6, arr)
+      setBatter2((state) => {
+        const updatedRun = state.run + run
+        const updatedBall = state.ball + 1
+        const sr = Math.round((updatedRun / updatedBall) * 100 * 100) / 100
+        return {
+          ...state,
+          run: updatedRun,
+          ball: updatedBall,
+          strikeRate: sr,
+        }
+      })
+      if ((ballCount === 5 && run % 2 === 0) || (ballCount !== 5 && run % 2 !== 0)) {
+        setBatter2((state) => ({
+          ...state,
+          onStrike: !state.onStrike,
+        }))
+        setBatter1((state) => ({
+          ...state,
+          onStrike: !state.onStrike,
+        }))
+      }
     }
   }
   const handleWicket = () => {
@@ -248,11 +230,13 @@ const ScoreBoard = () => {
     }
   }
 
-  if (batter1 !== '' && batter2 !== '' && bowler !== '') {
+  if (bowler !== '') {
     enableAllScoreButtons()
   }
   const overs = overCount + ballCount / 6
   const crr = (totalRuns / overs).toFixed(2)
+  console.log('batter1=', batter1)
+  console.log('batter2=', batter2)
   return (
     <div className='container'>
       <div className='inning'>
@@ -279,31 +263,29 @@ const ScoreBoard = () => {
             <tbody>
               <tr>
                 <td className='score-types'>
+                  <span className='strike'>*</span>
                   <input type='text' id='batter1Name' className='batter-name' onBlur={handleBatter1Blur} />
                   <IconButton color='primary' className='icon-button' onClick={editBatter1Name}>
                     <EditIcon className='icon-size' />
                   </IconButton>
                 </td>
-                <td className='score-types'>
-                  {0}({0})
-                </td>
-                <td className='score-types'>{0}</td>
-                <td className='score-types'>{0}</td>
-                <td className='score-types'>{0}</td>
+                <td className='score-types'>{batter1.run === undefined ? `0(0)` : `${batter1.run}(${batter1.ball})`}</td>
+                <td className='score-types'>{batter1.four === undefined ? 0 : batter1.four}</td>
+                <td className='score-types'>{batter1.six === undefined ? 0 : batter1.six}</td>
+                <td className='score-types'>{batter1.strikeRate === undefined ? 0 : batter1.strikeRate}</td>
               </tr>
               <tr>
                 <td className='score-types'>
+                  <span className='non-strike'></span>
                   <input type='text' id='batter2Name' className='batter-name' onBlur={handleBatter2Blur} />
                   <IconButton color='primary' className='icon-button' onClick={editBatter2Name}>
                     <EditIcon className='icon-size' />
                   </IconButton>
                 </td>
-                <td className='score-types'>
-                  {0}({0})
-                </td>
-                <td className='score-types'>{0}</td>
-                <td className='score-types'>{0}</td>
-                <td className='score-types'>{0}</td>
+                <td className='score-types'>{batter2.run === undefined ? `0(0)` : `${batter2.run}(${batter2.ball})`}</td>
+                <td className='score-types'>{batter2.four === undefined ? 0 : batter2.four}</td>
+                <td className='score-types'>{batter2.six === undefined ? 0 : batter2.six}</td>
+                <td className='score-types'>{batter2.strikeRate === undefined ? 0 : batter2.strikeRate}</td>
               </tr>
             </tbody>
           </table>
@@ -328,17 +310,17 @@ const ScoreBoard = () => {
           <table>
             <tbody>
               <tr>
-                <td className='score-types' onClick={handleZeroRun}>
+                <td className='score-types' onClick={() => handleRun(0)}>
                   <button className='score-types-button' disabled>
                     0
                   </button>
                 </td>
-                <td className='score-types' onClick={handleOneRun}>
+                <td className='score-types' onClick={() => handleRun(1)}>
                   <button className='score-types-button' disabled>
                     1
                   </button>
                 </td>
-                <td className='score-types' onClick={handleTwoRun}>
+                <td className='score-types' onClick={() => handleRun(2)}>
                   <button className='score-types-button' disabled>
                     2
                   </button>
@@ -355,17 +337,17 @@ const ScoreBoard = () => {
                 </td>
               </tr>
               <tr>
-                <td className='score-types' onClick={handleThreeRun}>
+                <td className='score-types' onClick={() => handleRun(3)}>
                   <button className='score-types-button' disabled>
                     3
                   </button>
                 </td>
-                <td className='score-types' onClick={handleFourRun}>
+                <td className='score-types' onClick={() => handleRun(4)}>
                   <button className='score-types-button' disabled>
                     4
                   </button>
                 </td>
-                <td className='score-types' onClick={handleSixRun}>
+                <td className='score-types' onClick={() => handleRun(6)}>
                   <button className='score-types-button' disabled>
                     6
                   </button>
