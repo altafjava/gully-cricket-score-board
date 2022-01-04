@@ -38,9 +38,6 @@ table thead {
 .batting-container table td {
   padding: 8px 4px;
 }
-.bowler-container {
-  margin: 0.8rem 0;
-}
 .bowler {
   background-color: #3f51b517;
   padding: 8px;
@@ -50,10 +47,6 @@ table thead {
   align-items: center;
   justify-content: space-between;
   padding: 8px;
-}
-.score-types-container {
-  margin: 1rem 0;
-  text-align: center;
 }
 .score-types-container table {
   width: 100%;
@@ -93,18 +86,23 @@ table thead {
 .batter-name {
   max-width: 6rem;
 }
+.extras-container {
+  margin: 0.8rem 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 8px;
+  background: #3f51b517;
+}
+.recent-over-container {
+  margin: 0.8rem 0;
+}
 .recent-over-text {
   background-color: #3f51b517;
   padding: 8px;
 }
-.recent-over-details {
-  /* display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  padding: 8px; */
-}
 .recent-over-details table {
   width: 100%;
+  font-size: 0.9rem;
 }
 .recent-over-runs {
   display: flex;

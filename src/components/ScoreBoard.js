@@ -9,6 +9,7 @@ const ScoreBoard = () => {
   const [inning, setInning] = useState(1)
   const [currentRunStack, setCurrentRunStack] = useState([])
   const [totalRuns, setTotalRuns] = useState(0)
+  const [extras, setExtras] = useState({ total: 0, wide: 0, noBall: 0 })
   const [runsByOver, setRunsByOver] = useState(0)
   const [totalWickets, setTotalWickets] = useState(0)
   const [totalOvers, setTotalOvers] = useState(0)
@@ -216,14 +217,24 @@ const ScoreBoard = () => {
     }
   }
   const handleNoBall = () => {
-    setCurrentRunStack((state) => [...state, 'NB'])
+    setCurrentRunStack((state) => [...state, 'nb'])
     setTotalRuns(totalRuns + 1)
     setRunsByOver(runsByOver + 1)
+    setExtras((state) => ({
+      ...state,
+      total: state.total + 1,
+      noBall: state.noBall + 1,
+    }))
   }
   const handleWide = () => {
-    setCurrentRunStack((state) => [...state, 'Wd'])
+    setCurrentRunStack((state) => [...state, 'wd'])
     setTotalRuns(totalRuns + 1)
     setRunsByOver(runsByOver + 1)
+    setExtras((state) => ({
+      ...state,
+      total: state.total + 1,
+      wide: state.wide + 1,
+    }))
   }
   const overCompleted = (runsByOverParam, currentRunStackParam) => {
     const bowlerNameElement = document.getElementById('bowlerName')
@@ -345,7 +356,7 @@ const ScoreBoard = () => {
                 </td>
                 <td className='score-types' onClick={handleNoBall}>
                   <button className='score-types-button' disabled>
-                    NB
+                    nb
                   </button>
                 </td>
                 <td rowSpan='2' className='score-types' onClick={handleWicket}>
@@ -372,12 +383,17 @@ const ScoreBoard = () => {
                 </td>
                 <td className='score-types' onClick={handleWide}>
                   <button className='score-types-button' disabled>
-                    Wd
+                    wd
                   </button>
                 </td>
               </tr>
             </tbody>
           </table>
+        </div>
+        <div className='extras-container'>
+          <div>Extras: {extras.total}</div>
+          <div>Wd: {extras.wide}</div>
+          <div>NB: {extras.noBall}</div>
         </div>
         <div className='recent-over-container'>
           <div className='recent-over-text'>Recent Overs</div>
