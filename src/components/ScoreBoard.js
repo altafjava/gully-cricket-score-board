@@ -37,9 +37,12 @@ const ScoreBoard = () => {
   const [isModalOpen, setModalOpen] = React.useState(false)
   const [outType, setOutType] = React.useState('')
   const [runOutPlayerId, setRunOutPlayerId] = React.useState('')
+  const [remainingBalls, setRemainingBalls] = useState(0)
+  const [remainingRuns, setRemainingRuns] = useState(0)
 
   let data = JSON.parse(localStorage.getItem('data'))
-  const { team1, team2, maxOver } = data
+  const { batting, team1, team2 } = data
+  const maxOver = parseInt(data.maxOver)
 
   const handleEndInning = () => {
     const { id, name, run, ball, four, six, strikeRate, onStrike } = batter1
@@ -97,6 +100,11 @@ const ScoreBoard = () => {
     setBatter2({})
     setBattingOrder(0)
     setBowler('')
+    setRemainingBalls(maxOver * 6)
+    setRemainingRuns(totalRuns + 1)
+    const bowlerNameElement = document.getElementById('bowlerName')
+    bowlerNameElement.value = ''
+    bowlerNameElement.disabled = false
     const batter1NameElement = document.getElementById('batter1Name')
     batter1NameElement.value = ''
     batter1NameElement.disabled = false
@@ -110,7 +118,6 @@ const ScoreBoard = () => {
     nonStrikeElement.textContent = ''
     nonStrikeElement.className = 'non-strike'
   }
-
   const handleBatter1Blur = (e) => {
     let name = e.target.value
     name = name.charAt(0).toUpperCase() + name.slice(1)
@@ -217,18 +224,24 @@ const ScoreBoard = () => {
     setBatter2({})
   }
   const editBatter1Name = () => {
-    const batter1NameElement = document.getElementById('batter1Name')
-    batter1NameElement.disabled = false
-    setBatter1Edited(true)
+    if (overCount !== maxOver) {
+      const batter1NameElement = document.getElementById('batter1Name')
+      batter1NameElement.disabled = false
+      setBatter1Edited(true)
+    }
   }
-  const editBatter2Name = (e) => {
-    const batter2NameElement = document.getElementById('batter2Name')
-    batter2NameElement.disabled = false
-    setBatter2Edited(true)
+  const editBatter2Name = () => {
+    if (overCount !== maxOver) {
+      const batter2NameElement = document.getElementById('batter2Name')
+      batter2NameElement.disabled = false
+      setBatter2Edited(true)
+    }
   }
-  const editBowlerName = (e) => {
-    const bowlerNameElement = document.getElementById('bowlerName')
-    bowlerNameElement.disabled = false
+  const editBowlerName = () => {
+    if (overCount !== maxOver) {
+      const bowlerNameElement = document.getElementById('bowlerName')
+      bowlerNameElement.disabled = false
+    }
   }
   const changeStrike = () => {
     const strikeElement = document.querySelector('.strike')
@@ -243,6 +256,10 @@ const ScoreBoard = () => {
     setCurrentRunStack((state) => [...state, run])
     setTotalRuns(totalRuns + run)
     setRunsByOver(runsByOver + run)
+    if (inningNo === 2) {
+      setRemainingBalls(remainingBalls - 1)
+      setRemainingRuns(remainingRuns - run)
+    }
     if (ballCount === 5) {
       setTotalOvers(overCount + 1)
       const arr = [...currentRunStack]
@@ -323,6 +340,32 @@ const ScoreBoard = () => {
       }
     }
   }
+  const handleNoBall = () => {
+    if (inningNo === 2) {
+      setRemainingRuns(remainingRuns - 1)
+    }
+    setCurrentRunStack((state) => [...state, 'nb'])
+    setTotalRuns(totalRuns + 1)
+    setRunsByOver(runsByOver + 1)
+    setExtras((state) => ({
+      ...state,
+      total: state.total + 1,
+      noBall: state.noBall + 1,
+    }))
+  }
+  const handleWide = () => {
+    if (inningNo === 2) {
+      setRemainingRuns(remainingRuns - 1)
+    }
+    setCurrentRunStack((state) => [...state, 'wd'])
+    setTotalRuns(totalRuns + 1)
+    setRunsByOver(runsByOver + 1)
+    setExtras((state) => ({
+      ...state,
+      total: state.total + 1,
+      wide: state.wide + 1,
+    }))
+  }
   const handleWicket = (isRunOut, playerId) => {
     if (ballCount === 5) {
       setTotalOvers(overCount + 1)
@@ -350,6 +393,9 @@ const ScoreBoard = () => {
       }
     }
     setRunOutPlayerId('')
+    if (wicketCount + 1 === 11) {
+      handleEndInning()
+    }
   }
   const handleCloseModal = () => {
     if (outType !== '') {
@@ -381,37 +427,22 @@ const ScoreBoard = () => {
     runOutPlayerErrorElement.classList.add('hide')
     setRunOutPlayerId(playerId)
   }
-  const handleNoBall = () => {
-    setCurrentRunStack((state) => [...state, 'nb'])
-    setTotalRuns(totalRuns + 1)
-    setRunsByOver(runsByOver + 1)
-    setExtras((state) => ({
-      ...state,
-      total: state.total + 1,
-      noBall: state.noBall + 1,
-    }))
-  }
-  const handleWide = () => {
-    setCurrentRunStack((state) => [...state, 'wd'])
-    setTotalRuns(totalRuns + 1)
-    setRunsByOver(runsByOver + 1)
-    setExtras((state) => ({
-      ...state,
-      total: state.total + 1,
-      wide: state.wide + 1,
-    }))
+  const endMatch = () => {
+    disableAllScoreButtons()
   }
   const overCompleted = (runsByOverParam, currentRunStackParam) => {
     const bowlerNameElement = document.getElementById('bowlerName')
-    bowlerNameElement.disabled = false
     bowlerNameElement.value = ''
     setBowler('')
+    if (overCount + 1 !== maxOver) {
+      bowlerNameElement.disabled = false
+    }
     disableAllScoreButtons()
     setRecentOvers((state) => [...state, { overNo: overCount + 1, bowler: bowler, runs: runsByOverParam, stack: currentRunStackParam }])
     setCurrentRunStack([])
     setRunsByOver(0)
     setBallCount(0)
-    setOverCount(overCount + 1.0)
+    setOverCount(overCount + 1)
   }
   const disableAllScoreButtons = () => {
     const scoreTypesButtons = document.querySelectorAll('.score-types-button')
@@ -429,8 +460,54 @@ const ScoreBoard = () => {
   if (batter1.name !== undefined && batter2.name !== undefined && bowler !== '') {
     enableAllScoreButtons()
   }
+  const target = (match && match.inning1 && match.inning1.run + 1) === undefined ? 0 : match.inning1.run + 1
+  let rrr = (remainingRuns / (remainingBalls / 6)).toFixed(2)
+  rrr = isFinite(rrr) ? rrr : 0
   const overs = overCount + ballCount / 6
-  const crr = (totalRuns / overs).toFixed(2)
+  let crr = (totalRuns / overs).toFixed(2)
+  crr = isFinite(crr) ? crr : 0
+
+  const welcomeContent = (
+    <>
+      <div></div>
+      <div>Welcome to Gully Cricket Score Board</div>
+      <div></div>
+    </>
+  )
+  const firstInningCompletedContent = (
+    <>
+      <div>1st inning completed</div>
+      <div>Please click "End Inning" button</div>
+    </>
+  )
+  
+  const scoringTeam = batting === team1 ? team1 : team2
+  const chessingTeam = scoringTeam === team1 ? team2 : team1
+  let winningMessage = `${inningNo === 1 ? scoringTeam : chessingTeam} needs ${remainingRuns} ${
+    remainingRuns <= 1 ? 'run' : 'runs'
+  } in ${remainingBalls} ${remainingBalls <= 1 ? 'ball' : 'balls'} to win`
+  if (inningNo === 2) {
+    if (wicketCount < 10 && overCount <= maxOver && totalRuns >= target) {
+      winningMessage = `${chessingTeam} won by ${10 - wicketCount} wickets`
+      endMatch()
+    }
+    if ((wicketCount >= 10 || overCount >= maxOver) && totalRuns < target - 1) {
+      winningMessage = `${scoringTeam} won by ${target - totalRuns - 1} runs`
+      endMatch()
+    }
+    if (wicketCount < 10 && overCount === maxOver && totalRuns === target - 1) {
+      winningMessage = 'Match Tied'
+      endMatch()
+    }
+  }
+  const remainingRunsContent = (
+    <>
+      <div>Target: {target}</div>
+      <div>{winningMessage}</div>
+      <div>RRR: {isNaN(rrr) ? 0 : rrr}</div>
+    </>
+  )
+
   return (
     <div className='container'>
       <div className='inning'>
@@ -441,11 +518,9 @@ const ScoreBoard = () => {
           <button onClick={handleEndInning}>End Inning</button>
         </div>
       </div>
-      {inningNo === 2 && (
-        <div className='winning-hint'>
-          {inningNo === 1 ? team1 : team2} needs {match.inning1.run + 1} runs in {parseInt(maxOver) * 6} balls
-        </div>
-      )}
+      <div id='badge' className='badge badge-flex'>
+        {inningNo === 2 ? remainingRunsContent : overCount === maxOver ? firstInningCompletedContent : welcomeContent}
+      </div>
       <div className='score-container'>
         <div>
           <Modal
@@ -545,7 +620,7 @@ const ScoreBoard = () => {
         </div>
         <div className='score'>
           <div>
-            {inningNo === 1 ? team1 : team2} : {totalRuns}/{wicketCount} ({totalOvers})
+            {inningNo === 1 ? scoringTeam : chessingTeam} : {totalRuns}/{wicketCount} ({totalOvers})
           </div>
           <div>CRR : {isNaN(crr) ? 0 : crr}</div>
         </div>

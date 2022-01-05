@@ -64,10 +64,7 @@ const HorizontalStepper = () => {
   const history = useHistory()
   const classes = useStyles()
   const [activeStep, setActiveStep] = React.useState(0)
-
   const [isSubmitting, setSubmitting] = React.useState(false)
-  const [team1Players, setTeam1Players] = React.useState([Date.now().toString()])
-  const [team2Players, setTeam2Players] = React.useState([Date.now().toString()])
 
   const steps = ['Team', 'Overs', 'Batting']
   const handleNext = () => {
@@ -113,14 +110,12 @@ const HorizontalStepper = () => {
           validationSchema={currentValidationSchema}
           initialValues={initialValues}
           onSubmit={(values, actions) => {
-            console.log('onSubmit=', values, actions)
             handleNext()
             actions.setTouched({})
             actions.setSubmitting(false)
             if (isLastStep()) {
               setSubmitting(true)
               const data = JSON.stringify(values)
-              console.log('data=', data)
               localStorage.setItem('data', data)
               history.push('/score')
               setSubmitting(false)
@@ -129,8 +124,6 @@ const HorizontalStepper = () => {
         >
           {(prp) => {
             const { values, touched, errors, handleChange, handleBlur, handleSubmit, handleReset, setFieldValue } = prp
-            // console.log('errors=', errors)
-            // console.log('touched=', touched)
             return (
               <form onSubmit={handleSubmit}>
                 <div className={classes.formContainer}>
