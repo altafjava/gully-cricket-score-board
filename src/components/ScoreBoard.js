@@ -13,21 +13,11 @@ import { BATTING, OUT } from '../constants/BattingStatus'
 import { BOLD, CATCH, HIT_WICKET, RUN_OUT, STUMP } from '../constants/OutType'
 import MathUtil from '../util/MathUtil'
 import './ScoreBoard.css'
-
-const style = {
-  position: 'absolute',
-  top: '57.5%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: 340,
-  bgcolor: 'background.paper',
-  border: '2px solid #3f51b5',
-  boxShadow: 24,
-  p: '4px',
-}
+import { radioGroupBoxstyle } from './ui/RadioGroupBoxStyle'
 
 const ScoreBoard = () => {
-  const [inning, setInning] = useState(1)
+  const [inningNo, setInningNo] = useState(1)
+  const [inning, setInning] = useState({ inning1: {}, inning2: {} })
   const [currentRunStack, setCurrentRunStack] = useState([])
   const [totalRuns, setTotalRuns] = useState(0)
   const [extras, setExtras] = useState({ total: 0, wide: 0, noBall: 0 })
@@ -44,9 +34,7 @@ const ScoreBoard = () => {
   const [bowler, setBowler] = useState('')
   const [isBatter1Edited, setBatter1Edited] = useState(false)
   const [isBatter2Edited, setBatter2Edited] = useState(false)
-  const [open, setOpen] = React.useState(false)
-  const handleOpen = () => setOpen(true)
-  const handleClose = () => setOpen(false)
+  const [isModalOpen, setModalOpen] = React.useState(false)
   const [outType, setOutType] = React.useState('')
   const [runOutPlayerId, setRunOutPlayerId] = React.useState('')
 
@@ -291,26 +279,41 @@ const ScoreBoard = () => {
         newBatter2()
       }
     }
+    setRunOutPlayerId('')
   }
+  const handleOpenModal = () => setModalOpen(true)
+  const handleCloseModal = () => {
+    if (outType !== '') {
+      if (outType === RUN_OUT) {
+        if (runOutPlayerId !== '') {
+          handleWicket(true, runOutPlayerId)
+        }
+      } else {
+        handleWicket(false, '')
+      }
+    }
+    setModalOpen(false)
+    setOutType('')
+    setRunOutPlayerId('')
+  }
+
   const handleOutTypeChange = (e) => {
     const outTypeValue = e.target.value
+    setOutType(outTypeValue)
     if (outTypeValue === RUN_OUT) {
       const runOutPlayerElement = document.getElementById('run-out-player')
       runOutPlayerElement.classList.remove('hide')
       const runOutPlayerErrorElement = document.getElementById('run-out-player-error')
       runOutPlayerErrorElement.classList.remove('hide')
-    } else {
-      handleWicket(false, '')
     }
-    setOutType(outTypeValue)
   }
   const handleRunOutPlayerChange = (e) => {
     const playerId = e.target.value
     const runOutPlayerErrorElement = document.getElementById('run-out-player-error')
     runOutPlayerErrorElement.classList.add('hide')
     setRunOutPlayerId(playerId)
-    handleWicket(true, playerId)
   }
+
   const handleNoBall = () => {
     setCurrentRunStack((state) => [...state, 'nb'])
     setTotalRuns(totalRuns + 1)
@@ -363,12 +366,17 @@ const ScoreBoard = () => {
   return (
     <div className='container'>
       <div className='inning'>
-        {team1} vs {team2}, {inning === 1 ? '1st' : '2nd'} Inning
+        {team1} vs {team2}, {inningNo === 1 ? '1st' : '2nd'} Inning
       </div>
       <div className='score-container'>
         <div>
-          <Modal open={open} onClose={handleClose} aria-labelledby='modal-modal-title' aria-describedby='modal-modal-description'>
-            <Box sx={style}>
+          <Modal
+            open={isModalOpen}
+            onClose={handleCloseModal}
+            aria-labelledby='modal-modal-title'
+            aria-describedby='modal-modal-description'
+          >
+            <Box sx={radioGroupBoxstyle}>
               <FormControl component='fieldset'>
                 <RadioGroup
                   row
@@ -544,7 +552,7 @@ const ScoreBoard = () => {
                     nb
                   </button>
                 </td>
-                <td rowSpan='2' className='score-types' onClick={handleOpen}>
+                <td rowSpan='2' className='score-types' onClick={handleOpenModal}>
                   <button className='score-types-button' disabled>
                     W
                   </button>
