@@ -1,10 +1,30 @@
 import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
 import { IconButton } from '@mui/material'
+import Box from '@mui/material/Box'
+import { pink } from '@mui/material/colors'
+import FormControl from '@mui/material/FormControl'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import Modal from '@mui/material/Modal'
+import Radio from '@mui/material/Radio'
+import RadioGroup from '@mui/material/RadioGroup'
 import React, { useState } from 'react'
 import { BATTING, OUT } from '../constants/BattingStatus'
+import { BOLD, CATCH, HIT_WICKET, RUN_OUT, STUMP } from '../constants/OutType'
 import MathUtil from '../util/MathUtil'
 import './ScoreBoard.css'
+
+const style = {
+  position: 'absolute',
+  top: '57.5%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: 340,
+  bgcolor: 'background.paper',
+  border: '2px solid #3f51b5',
+  boxShadow: 24,
+  p: '4px',
+}
 
 const ScoreBoard = () => {
   const [inning, setInning] = useState(1)
@@ -24,6 +44,11 @@ const ScoreBoard = () => {
   const [bowler, setBowler] = useState('')
   const [isBatter1Edited, setBatter1Edited] = useState(false)
   const [isBatter2Edited, setBatter2Edited] = useState(false)
+  const [open, setOpen] = React.useState(false)
+  const handleOpen = () => setOpen(true)
+  const handleClose = () => setOpen(false)
+  const [outType, setOutType] = React.useState('')
+  const [runOutPlayerId, setRunOutPlayerId] = React.useState('')
 
   let data = JSON.parse(localStorage.getItem('data'))
   const { team1, team2 } = data
@@ -240,7 +265,7 @@ const ScoreBoard = () => {
       }
     }
   }
-  const handleWicket = () => {
+  const handleWicket = (isRunOut, playerId) => {
     if (ballCount === 5) {
       setTotalOvers(overCount + 1)
       const arr = [...currentRunStack]
@@ -253,11 +278,38 @@ const ScoreBoard = () => {
     }
     setWicketCount(wicketCount + 1)
     disableAllScoreButtons()
-    if (batter1.onStrike) {
-      newBatter1()
+    if (isRunOut) {
+      if (batter1.id === playerId) {
+        newBatter1()
+      } else {
+        newBatter2()
+      }
     } else {
-      newBatter2()
+      if (batter1.onStrike) {
+        newBatter1()
+      } else {
+        newBatter2()
+      }
     }
+  }
+  const handleOutTypeChange = (e) => {
+    const outTypeValue = e.target.value
+    if (outTypeValue === RUN_OUT) {
+      const runOutPlayerElement = document.getElementById('run-out-player')
+      runOutPlayerElement.classList.remove('hide')
+      const runOutPlayerErrorElement = document.getElementById('run-out-player-error')
+      runOutPlayerErrorElement.classList.remove('hide')
+    } else {
+      handleWicket(false, '')
+    }
+    setOutType(outTypeValue)
+  }
+  const handleRunOutPlayerChange = (e) => {
+    const playerId = e.target.value
+    const runOutPlayerErrorElement = document.getElementById('run-out-player-error')
+    runOutPlayerErrorElement.classList.add('hide')
+    setRunOutPlayerId(playerId)
+    handleWicket(true, playerId)
   }
   const handleNoBall = () => {
     setCurrentRunStack((state) => [...state, 'nb'])
@@ -314,6 +366,97 @@ const ScoreBoard = () => {
         {team1} vs {team2}, {inning === 1 ? '1st' : '2nd'} Inning
       </div>
       <div className='score-container'>
+        <div>
+          <Modal open={open} onClose={handleClose} aria-labelledby='modal-modal-title' aria-describedby='modal-modal-description'>
+            <Box sx={style}>
+              <FormControl component='fieldset'>
+                <RadioGroup
+                  row
+                  aria-label='wicket'
+                  name='row-radio-buttons-group'
+                  onChange={handleOutTypeChange}
+                  sx={{ alignItems: 'center' }}
+                >
+                  <FormControlLabel
+                    value={CATCH}
+                    control={
+                      <Radio
+                        sx={{
+                          '&.Mui-checked': {
+                            color: pink[600],
+                          },
+                        }}
+                      />
+                    }
+                    label={CATCH}
+                  />
+                  <FormControlLabel
+                    value={STUMP}
+                    control={
+                      <Radio
+                        sx={{
+                          '&.Mui-checked': {
+                            color: pink[600],
+                          },
+                        }}
+                      />
+                    }
+                    label={STUMP}
+                  />
+                  <FormControlLabel
+                    value={HIT_WICKET}
+                    control={
+                      <Radio
+                        sx={{
+                          '&.Mui-checked': {
+                            color: pink[600],
+                          },
+                        }}
+                      />
+                    }
+                    label={HIT_WICKET}
+                  />
+                  <FormControlLabel
+                    value={BOLD}
+                    control={
+                      <Radio
+                        sx={{
+                          '&.Mui-checked': {
+                            color: pink[600],
+                          },
+                        }}
+                      />
+                    }
+                    label={BOLD}
+                  />
+                  <FormControlLabel
+                    value={RUN_OUT}
+                    control={
+                      <Radio
+                        sx={{
+                          '&.Mui-checked': {
+                            color: pink[600],
+                          },
+                        }}
+                      />
+                    }
+                    label={RUN_OUT}
+                  />
+                  <select defaultValue='' id='run-out-player' className='run-out-player hide' onChange={handleRunOutPlayerChange}>
+                    <option value='' disabled>
+                      select option
+                    </option>
+                    <option value={batter1.id}>{batter1.name}</option>
+                    <option value={batter2.id}>{batter2.name}</option>
+                  </select>
+                </RadioGroup>
+                <div id='run-out-player-error' className='run-out-player-error hide'>
+                  Please select run out player name
+                </div>
+              </FormControl>
+            </Box>
+          </Modal>
+        </div>
         <div className='score'>
           <div>
             {team1} : {totalRuns}/{wicketCount} ({totalOvers})
@@ -401,7 +544,7 @@ const ScoreBoard = () => {
                     nb
                   </button>
                 </td>
-                <td rowSpan='2' className='score-types' onClick={handleWicket}>
+                <td rowSpan='2' className='score-types' onClick={handleOpen}>
                   <button className='score-types-button' disabled>
                     W
                   </button>

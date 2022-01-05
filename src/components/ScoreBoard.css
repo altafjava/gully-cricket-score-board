@@ -12,6 +12,19 @@
 .score-container {
   margin: 0.5rem;
 }
+.run-out-player {
+  height: 2rem;
+  max-width: 9.3rem;
+}
+.run-out-player-error {
+  color: red;
+  font-size: 0.7rem;
+  text-align: right;
+  padding-right: 0.4rem;
+}
+.hide {
+  display: none;
+}
 .score {
   display: flex;
   align-items: center;
