@@ -17,7 +17,7 @@ import { radioGroupBoxstyle } from './ui/RadioGroupBoxStyle'
 
 const ScoreBoard = () => {
   const [inningNo, setInningNo] = useState(1)
-  const [inning, setInning] = useState({ inning1: {}, inning2: {} })
+  const [match, setMatch] = useState({})
   const [currentRunStack, setCurrentRunStack] = useState([])
   const [totalRuns, setTotalRuns] = useState(0)
   const [extras, setExtras] = useState({ total: 0, wide: 0, noBall: 0 })
@@ -39,7 +39,77 @@ const ScoreBoard = () => {
   const [runOutPlayerId, setRunOutPlayerId] = React.useState('')
 
   let data = JSON.parse(localStorage.getItem('data'))
-  const { team1, team2 } = data
+  const { team1, team2, maxOver } = data
+
+  const handleEndInning = () => {
+    const { id, name, run, ball, four, six, strikeRate, onStrike } = batter1
+    batters.push({
+      id,
+      name,
+      run,
+      ball,
+      four,
+      six,
+      strikeRate,
+      onStrike,
+      battingOrder: batter1.battingOrder,
+      battingStatus: BATTING,
+    })
+    batters.push({
+      id: batter2.id,
+      name: batter2.name,
+      run: batter2.run,
+      ball: batter2.ball,
+      four: batter2.four,
+      six: batter2.six,
+      strikeRate: batter2.strikeRate,
+      onStrike: batter2.onStrike,
+      battingOrder: batter2.battingOrder,
+      battingStatus: BATTING,
+    })
+    setMatch((state) => {
+      const totalFours = batters.map((batter) => batter.four).reduce((prev, next) => prev + next)
+      const totalSixes = batters.map((batter) => batter.four).reduce((prev, next) => prev + next)
+      return {
+        ...state,
+        inning1: {
+          run: totalRuns,
+          wickets: wicketCount,
+          runRate: crr,
+          overs: totalOvers,
+          four: totalFours,
+          six: totalSixes,
+          extra: extras,
+        },
+      }
+    })
+    setInningNo(2)
+    setCurrentRunStack([])
+    setTotalRuns(0)
+    setExtras({ total: 0, wide: 0, noBall: 0 })
+    setRunsByOver(0)
+    setWicketCount(0)
+    setTotalOvers(0)
+    setBallCount(0)
+    setOverCount(0)
+    setRecentOvers([])
+    setBatter1({})
+    setBatter2({})
+    setBattingOrder(0)
+    setBowler('')
+    const batter1NameElement = document.getElementById('batter1Name')
+    batter1NameElement.value = ''
+    batter1NameElement.disabled = false
+    const batter2NameElement = document.getElementById('batter2Name')
+    batter2NameElement.value = ''
+    batter2NameElement.disabled = false
+    const strikeElement = document.getElementById('strike')
+    strikeElement.textContent = '*'
+    strikeElement.className = 'strike'
+    const nonStrikeElement = document.getElementById('non-strike')
+    nonStrikeElement.textContent = ''
+    nonStrikeElement.className = 'non-strike'
+  }
 
   const handleBatter1Blur = (e) => {
     let name = e.target.value
@@ -281,7 +351,6 @@ const ScoreBoard = () => {
     }
     setRunOutPlayerId('')
   }
-  const handleOpenModal = () => setModalOpen(true)
   const handleCloseModal = () => {
     if (outType !== '') {
       if (outType === RUN_OUT) {
@@ -296,7 +365,6 @@ const ScoreBoard = () => {
     setOutType('')
     setRunOutPlayerId('')
   }
-
   const handleOutTypeChange = (e) => {
     const outTypeValue = e.target.value
     setOutType(outTypeValue)
@@ -313,7 +381,6 @@ const ScoreBoard = () => {
     runOutPlayerErrorElement.classList.add('hide')
     setRunOutPlayerId(playerId)
   }
-
   const handleNoBall = () => {
     setCurrentRunStack((state) => [...state, 'nb'])
     setTotalRuns(totalRuns + 1)
@@ -358,6 +425,7 @@ const ScoreBoard = () => {
       scoreTypesButtons[i].disabled = false
     }
   }
+
   if (batter1.name !== undefined && batter2.name !== undefined && bowler !== '') {
     enableAllScoreButtons()
   }
@@ -366,8 +434,18 @@ const ScoreBoard = () => {
   return (
     <div className='container'>
       <div className='inning'>
-        {team1} vs {team2}, {inningNo === 1 ? '1st' : '2nd'} Inning
+        <div>
+          {team1} vs {team2}, {inningNo === 1 ? '1st' : '2nd'} Inning
+        </div>
+        <div>
+          <button onClick={handleEndInning}>End Inning</button>
+        </div>
       </div>
+      {inningNo === 2 && (
+        <div className='winning-hint'>
+          {inningNo === 1 ? team1 : team2} needs {match.inning1.run + 1} runs in {parseInt(maxOver) * 6} balls
+        </div>
+      )}
       <div className='score-container'>
         <div>
           <Modal
@@ -467,7 +545,7 @@ const ScoreBoard = () => {
         </div>
         <div className='score'>
           <div>
-            {team1} : {totalRuns}/{wicketCount} ({totalOvers})
+            {inningNo === 1 ? team1 : team2} : {totalRuns}/{wicketCount} ({totalOvers})
           </div>
           <div>CRR : {isNaN(crr) ? 0 : crr}</div>
         </div>
@@ -485,7 +563,9 @@ const ScoreBoard = () => {
             <tbody>
               <tr>
                 <td className='score-types'>
-                  <span className='strike'>*</span>
+                  <span id='strike' className='strike'>
+                    *
+                  </span>
                   <input type='text' id='batter1Name' className='batter-name' onBlur={handleBatter1Blur} />
                   <IconButton color='primary' className='icon-button' onClick={editBatter1Name}>
                     <EditIcon className='icon-size' />
@@ -498,7 +578,7 @@ const ScoreBoard = () => {
               </tr>
               <tr>
                 <td className='score-types'>
-                  <span className='non-strike'></span>
+                  <span id='non-strike' className='non-strike'></span>
                   <input type='text' id='batter2Name' className='batter-name' onBlur={handleBatter2Blur} />
                   <IconButton color='primary' className='icon-button' onClick={editBatter2Name}>
                     <EditIcon className='icon-size' />
@@ -552,7 +632,7 @@ const ScoreBoard = () => {
                     nb
                   </button>
                 </td>
-                <td rowSpan='2' className='score-types' onClick={handleOpenModal}>
+                <td rowSpan='2' className='score-types' onClick={() => setModalOpen(true)}>
                   <button className='score-types-button' disabled>
                     W
                   </button>

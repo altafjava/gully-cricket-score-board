@@ -6,8 +6,10 @@
   color: white;
   padding: 0.5rem;
   font-size: 1.2rem;
-  text-align: center;
-  margin-bottom: 1rem;
+  /* margin-bottom: 1rem; */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 .score-container {
   margin: 0.5rem;
@@ -20,10 +22,18 @@
   color: red;
   font-size: 0.7rem;
   text-align: right;
-  padding-right: 0.rem;
+  padding-right: 0rem;
 }
 .hide {
   display: none;
+}
+.winning-hint{
+  background: yellow;
+  color: green;
+  text-align: center;
+  font-size: 0.8rem;
+  padding: 4px;
+  margin-bottom: 4px;
 }
 .score {
   display: flex;
