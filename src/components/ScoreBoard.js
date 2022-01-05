@@ -2,6 +2,7 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
 import { IconButton } from '@mui/material'
 import React, { useState } from 'react'
+import { BATTING, OUT } from '../constants/BattingStatus'
 import MathUtil from '../util/MathUtil'
 import './ScoreBoard.css'
 
@@ -11,15 +12,15 @@ const ScoreBoard = () => {
   const [totalRuns, setTotalRuns] = useState(0)
   const [extras, setExtras] = useState({ total: 0, wide: 0, noBall: 0 })
   const [runsByOver, setRunsByOver] = useState(0)
-  const [totalWickets, setTotalWickets] = useState(0)
+  const [wicketCount, setWicketCount] = useState(0)
   const [totalOvers, setTotalOvers] = useState(0)
   const [batters, setBatters] = useState([])
   const [ballCount, setBallCount] = useState(0)
   const [overCount, setOverCount] = useState(0)
-  const [bowlers, setBowlers] = useState({})
   const [recentOvers, setRecentOvers] = useState([])
   const [batter1, setBatter1] = useState({})
   const [batter2, setBatter2] = useState({})
+  const [battingOrder, setBattingOrder] = useState(0)
   const [bowler, setBowler] = useState('')
   const [isBatter1Edited, setBatter1Edited] = useState(false)
   const [isBatter2Edited, setBatter2Edited] = useState(false)
@@ -33,13 +34,6 @@ const ScoreBoard = () => {
     e.target.value = name
     e.target.disabled = true
     if (isBatter1Edited) {
-      const index = batters.findIndex((batter) => batter.name === batter1.name)
-      const filteredArray = batters.filter((batter) => batter.name === batter1.name)
-      const obj = filteredArray[0]
-      obj.name = name
-      const arr = [...batters]
-      arr[index] = obj
-      setBatters(arr)
       setBatter1((state) => ({
         ...state,
         name: name,
@@ -55,7 +49,10 @@ const ScoreBoard = () => {
         six: 0,
         strikeRate: 0,
         onStrike: true,
+        battingOrder: battingOrder + 1,
+        battingStatus: BATTING,
       })
+      setBattingOrder(battingOrder + 1)
     }
   }
   const handleBatter2Blur = (e) => {
@@ -63,15 +60,7 @@ const ScoreBoard = () => {
     name = name.charAt(0).toUpperCase() + name.slice(1)
     e.target.value = name
     e.target.disabled = true
-    setBatter2(name)
     if (isBatter2Edited) {
-      const index = batters.findIndex((batter) => batter.name === batter2.name)
-      const filteredArray = batters.filter((batter) => batter.name === batter2.name)
-      const obj = filteredArray[0]
-      obj.name = name
-      const arr = [...batters]
-      arr[index] = obj
-      setBatters(arr)
       setBatter2((state) => ({
         ...state,
         name: name,
@@ -87,7 +76,10 @@ const ScoreBoard = () => {
         six: 0,
         strikeRate: 0,
         onStrike: false,
+        battingOrder: battingOrder + 1,
+        battingStatus: BATTING,
       })
+      setBattingOrder(battingOrder + 1)
     }
   }
   const handleBowlerBlur = (e) => {
@@ -96,6 +88,50 @@ const ScoreBoard = () => {
     e.target.value = name
     e.target.disabled = true
     setBowler(name)
+  }
+  const newBatter1 = () => {
+    const batter1NameElement = document.getElementById('batter1Name')
+    batter1NameElement.value = ''
+    batter1NameElement.disabled = false
+    const { id, name, run, ball, four, six, strikeRate, onStrike } = batter1
+    setBatters((state) => [
+      ...state,
+      {
+        id,
+        name,
+        run,
+        ball,
+        four,
+        six,
+        strikeRate,
+        onStrike,
+        battingOrder: batter1.battingOrder,
+        battingStatus: OUT,
+      },
+    ])
+    setBatter1({})
+  }
+  const newBatter2 = () => {
+    const batter2NameElement = document.getElementById('batter2Name')
+    batter2NameElement.value = ''
+    batter2NameElement.disabled = false
+    const { id, name, run, ball, four, six, strikeRate, onStrike } = batter2
+    setBatters((state) => [
+      ...state,
+      {
+        id,
+        name,
+        run,
+        ball,
+        four,
+        six,
+        strikeRate,
+        onStrike,
+        battingOrder: batter2.battingOrder,
+        battingStatus: OUT,
+      },
+    ])
+    setBatter2({})
   }
   const editBatter1Name = () => {
     const batter1NameElement = document.getElementById('batter1Name')
@@ -207,13 +243,20 @@ const ScoreBoard = () => {
   const handleWicket = () => {
     if (ballCount === 5) {
       setTotalOvers(overCount + 1)
+      const arr = [...currentRunStack]
+      arr.push('W')
+      overCompleted(runsByOver, arr)
     } else {
+      setBallCount(ballCount + 1)
+      setCurrentRunStack((state) => [...state, 'W'])
       setTotalOvers(Math.round((totalOvers + 0.1) * 10) / 10)
     }
-    setCurrentRunStack((state) => [...state, 'W'])
-    setBallCount(ballCount + 1)
-    if (ballCount === 5) {
-      overCompleted()
+    setWicketCount(wicketCount + 1)
+    disableAllScoreButtons()
+    if (batter1.onStrike) {
+      newBatter1()
+    } else {
+      newBatter2()
     }
   }
   const handleNoBall = () => {
@@ -260,8 +303,7 @@ const ScoreBoard = () => {
       scoreTypesButtons[i].disabled = false
     }
   }
-
-  if (bowler !== '') {
+  if (batter1.name !== undefined && batter2.name !== undefined && bowler !== '') {
     enableAllScoreButtons()
   }
   const overs = overCount + ballCount / 6
@@ -274,7 +316,7 @@ const ScoreBoard = () => {
       <div className='score-container'>
         <div className='score'>
           <div>
-            {team1} : {totalRuns}/{totalWickets} ({totalOvers})
+            {team1} : {totalRuns}/{wicketCount} ({totalOvers})
           </div>
           <div>CRR : {isNaN(crr) ? 0 : crr}</div>
         </div>
@@ -400,19 +442,19 @@ const ScoreBoard = () => {
           <div className='recent-over-details'>
             <table>
               <tbody>
-                {recentOvers.map((over, i) => (
+                {recentOvers.map((recentOver, i) => (
                   <tr key={i}>
-                    <td>{over.overNo}.</td>
-                    <td>{over.bowler}:</td>
+                    <td>{recentOver.overNo}.</td>
+                    <td>{recentOver.bowler}:</td>
                     <td>
                       <div className='recent-over-runs'>
-                        {over.stack.map((run, index) => (
+                        {recentOver.stack.map((run, index) => (
                           <div key={index}>{run}</div>
                         ))}
                       </div>
                     </td>
                     <td className='recent-over-total-run'>
-                      <div>{over.runs}</div>
+                      <div>{recentOver.runs}</div>
                     </td>
                   </tr>
                 ))}
