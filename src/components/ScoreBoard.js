@@ -40,6 +40,7 @@ const ScoreBoard = () => {
   const [remainingBalls, setRemainingBalls] = useState(0)
   const [remainingRuns, setRemainingRuns] = useState(0)
   const [selectedValue, setSelectedValue] = React.useState('strike')
+  const [isNoBall, setNoBall] = useState(false)
 
   let data = JSON.parse(localStorage.getItem('data'))
   const { batting, team1, team2 } = data
@@ -266,26 +267,37 @@ const ScoreBoard = () => {
     switchBatterStrike()
   }
   const handleRun = (run) => {
-    setBallCount(ballCount + 1)
-    setCurrentRunStack((state) => [...state, run])
+    if (isNoBall) {
+      setCurrentRunStack((state) => [...state, 'nb' + run])
+      removeNoBallEffect()
+    } else {
+      setBallCount(ballCount + 1)
+      setCurrentRunStack((state) => [...state, run])
+    }
     setTotalRuns(totalRuns + run)
     setRunsByOver(runsByOver + run)
     if (inningNo === 2) {
-      setRemainingBalls(remainingBalls - 1)
+      if (!isNoBall) {
+        setRemainingBalls(remainingBalls - 1)
+      }
       setRemainingRuns(remainingRuns - run)
     }
     if (ballCount === 5) {
-      setTotalOvers(overCount + 1)
-      const arr = [...currentRunStack]
-      arr.push(run)
-      overCompleted(runsByOver + run, arr)
-      if (run % 2 === 0) {
-        changeStrike()
+      if (!isNoBall) {
+        setTotalOvers(overCount + 1)
+        const arr = [...currentRunStack]
+        arr.push(run)
+        overCompleted(runsByOver + run, arr)
+        if (run % 2 === 0) {
+          changeStrike()
+        }
       }
     } else {
-      setTotalOvers(Math.round((totalOvers + 0.1) * 10) / 10)
-      if (run % 2 !== 0) {
-        changeStrike()
+      if (!isNoBall) {
+        setTotalOvers(Math.round((totalOvers + 0.1) * 10) / 10)
+        if (run % 2 !== 0) {
+          changeStrike()
+        }
       }
     }
     if (batter1.onStrike) {
@@ -310,7 +322,7 @@ const ScoreBoard = () => {
           strikeRate: sr,
         }
       })
-      if ((ballCount === 5 && run % 2 === 0) || (ballCount !== 5 && run % 2 !== 0)) {
+      if (((ballCount === 5 && run % 2 === 0) || (ballCount !== 5 && run % 2 !== 0)) && !isNoBall) {
         switchBatterStrike()
       }
     } else {
@@ -335,7 +347,7 @@ const ScoreBoard = () => {
           strikeRate: sr,
         }
       })
-      if ((ballCount === 5 && run % 2 === 0) || (ballCount !== 5 && run % 2 !== 0)) {
+      if (((ballCount === 5 && run % 2 === 0) || (ballCount !== 5 && run % 2 !== 0)) && !isNoBall) {
         switchBatterStrike()
       }
     }
@@ -344,7 +356,6 @@ const ScoreBoard = () => {
     if (inningNo === 2) {
       setRemainingRuns(remainingRuns - 1)
     }
-    setCurrentRunStack((state) => [...state, 'nb'])
     setTotalRuns(totalRuns + 1)
     setRunsByOver(runsByOver + 1)
     setExtras((state) => ({
@@ -352,33 +363,78 @@ const ScoreBoard = () => {
       total: state.total + 1,
       noBall: state.noBall + 1,
     }))
+    addNoBallEffect()
+  }
+  const addNoBallEffect = () => {
+    const scoreTypesButtons = document.querySelectorAll('.score-types-button')
+    for (let i = 0; i < scoreTypesButtons.length; i++) {
+      scoreTypesButtons[i].classList.add('score-types-button-noball')
+    }
+    setNoBall(true)
+  }
+  const removeNoBallEffect = () => {
+    const scoreTypesButtons = document.querySelectorAll('.score-types-button')
+    for (let i = 0; i < scoreTypesButtons.length; i++) {
+      scoreTypesButtons[i].classList.remove('score-types-button-noball')
+    }
+    setNoBall(false)
   }
   const handleWide = () => {
-    if (inningNo === 2) {
-      setRemainingRuns(remainingRuns - 1)
+    if (isNoBall) {
+      setCurrentRunStack((state) => [...state, 'nb'])
+      removeNoBallEffect()
+    } else {
+      if (inningNo === 2) {
+        setRemainingRuns(remainingRuns - 1)
+      }
+      setCurrentRunStack((state) => [...state, 'wd'])
+      setTotalRuns(totalRuns + 1)
+      setRunsByOver(runsByOver + 1)
+      setExtras((state) => ({
+        ...state,
+        total: state.total + 1,
+        wide: state.wide + 1,
+      }))
     }
-    setCurrentRunStack((state) => [...state, 'wd'])
-    setTotalRuns(totalRuns + 1)
-    setRunsByOver(runsByOver + 1)
-    setExtras((state) => ({
-      ...state,
-      total: state.total + 1,
-      wide: state.wide + 1,
-    }))
   }
   const handleWicket = (isRunOut, playerId) => {
+    setRunOutPlayerId('')
     if (ballCount === 5) {
-      setTotalOvers(overCount + 1)
-      const arr = [...currentRunStack]
-      arr.push('W')
-      overCompleted(runsByOver, arr)
+      if (isNoBall) {
+        removeNoBallEffect()
+        if (isRunOut) {
+          setCurrentRunStack((state) => [...state, 'nbW'])
+          setWicketCount(wicketCount + 1)
+          disableAllScoreButtons()
+        } else {
+          setCurrentRunStack((state) => [...state, 'nb'])
+        }
+      } else {
+        setTotalOvers(overCount + 1)
+        const arr = [...currentRunStack]
+        arr.push('W')
+        overCompleted(runsByOver, arr)
+        setWicketCount(wicketCount + 1)
+        disableAllScoreButtons()
+      }
     } else {
-      setBallCount(ballCount + 1)
-      setCurrentRunStack((state) => [...state, 'W'])
-      setTotalOvers(Math.round((totalOvers + 0.1) * 10) / 10)
+      if (isNoBall) {
+        removeNoBallEffect()
+        if (isRunOut) {
+          setCurrentRunStack((state) => [...state, 'nbW'])
+          setWicketCount(wicketCount + 1)
+          disableAllScoreButtons()
+        } else {
+          setCurrentRunStack((state) => [...state, 'nb'])
+        }
+      } else {
+        setBallCount(ballCount + 1)
+        setCurrentRunStack((state) => [...state, 'W'])
+        setTotalOvers(Math.round((totalOvers + 0.1) * 10) / 10)
+        setWicketCount(wicketCount + 1)
+        disableAllScoreButtons()
+      }
     }
-    setWicketCount(wicketCount + 1)
-    disableAllScoreButtons()
     if (isRunOut) {
       if (batter1.id === playerId) {
         newBatter1()
@@ -386,16 +442,24 @@ const ScoreBoard = () => {
         newBatter2()
       }
     } else {
-      if (batter1.onStrike) {
-        newBatter1()
-      } else {
-        newBatter2()
+      if (!isNoBall) {
+        if (batter1.onStrike) {
+          newBatter1()
+        } else {
+          newBatter2()
+        }
       }
     }
-    setRunOutPlayerId('')
-    if (wicketCount + 1 === 10) {
-      const endInningButton = document.getElementById('end-inning')
-      endInningButton.disabled = false
+    if (isNoBall) {
+      if (isRunOut && wicketCount + 1 === 10) {
+        const endInningButton = document.getElementById('end-inning')
+        endInningButton.disabled = false
+      }
+    } else {
+      if (wicketCount + 1 === 10) {
+        const endInningButton = document.getElementById('end-inning')
+        endInningButton.disabled = false
+      }
     }
   }
   const handleCloseModal = () => {

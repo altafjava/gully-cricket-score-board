@@ -37,7 +37,7 @@
   display: none;
 }
 .badge {
-  background: #ffff0060;
+  background: #ffff4d;
   color: #000000;
   text-align: center;
   font-size: 0.75rem;
@@ -108,6 +108,10 @@ table thead {
 .score-types-button:active {
   color: white;
   background-color: #3f51b5;
+}
+.score-types-button-noball {
+  color: #000;
+  background-color: #ffff4d;
 }
 .icon-button {
   padding: 0 4px !important;
