@@ -128,6 +128,7 @@ const ScoreBoard = () => {
         ...state,
         name: name,
       }))
+      setBatter1Edited(false)
     } else {
       const randomNo = MathUtil.getRandomNo()
       setBatter1({
@@ -155,6 +156,7 @@ const ScoreBoard = () => {
         ...state,
         name: name,
       }))
+      setBatter2Edited(false)
     } else {
       const randomNo = MathUtil.getRandomNo()
       setBatter2({
@@ -393,8 +395,9 @@ const ScoreBoard = () => {
       }
     }
     setRunOutPlayerId('')
-    if (wicketCount + 1 === 11) {
-      handleEndInning()
+    if (wicketCount + 1 === 10) {
+      const endInningButton = document.getElementById('end-inning')
+      endInningButton.disabled = false
     }
   }
   const handleCloseModal = () => {
@@ -434,7 +437,10 @@ const ScoreBoard = () => {
     const bowlerNameElement = document.getElementById('bowlerName')
     bowlerNameElement.value = ''
     setBowler('')
-    if (overCount + 1 !== maxOver) {
+    if (overCount + 1 === maxOver) {
+      const endInningButton = document.getElementById('end-inning')
+      endInningButton.disabled = false
+    } else {
       bowlerNameElement.disabled = false
     }
     disableAllScoreButtons()
@@ -476,11 +482,12 @@ const ScoreBoard = () => {
   )
   const firstInningCompletedContent = (
     <>
-      <div>1st inning completed</div>
+      {overCount === maxOver && <div>1st inning completed</div>}
+      {wicketCount === 10 && <div>All Out</div>}
       <div>Please click "End Inning" button</div>
     </>
   )
-  
+
   const scoringTeam = batting === team1 ? team1 : team2
   const chessingTeam = scoringTeam === team1 ? team2 : team1
   let winningMessage = `${inningNo === 1 ? scoringTeam : chessingTeam} needs ${remainingRuns} ${
@@ -515,11 +522,13 @@ const ScoreBoard = () => {
           {team1} vs {team2}, {inningNo === 1 ? '1st' : '2nd'} Inning
         </div>
         <div>
-          <button onClick={handleEndInning}>End Inning</button>
+          <button id='end-inning' onClick={handleEndInning}>
+            End Inning
+          </button>
         </div>
       </div>
       <div id='badge' className='badge badge-flex'>
-        {inningNo === 2 ? remainingRunsContent : overCount === maxOver ? firstInningCompletedContent : welcomeContent}
+        {inningNo === 2 ? remainingRunsContent : overCount === maxOver || wicketCount === 10 ? firstInningCompletedContent : welcomeContent}
       </div>
       <div className='score-container'>
         <div>
