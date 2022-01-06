@@ -45,7 +45,6 @@ const ScoreBoard = () => {
   const maxOver = parseInt(data.maxOver)
 
   useEffect(() => {
-    console.log('useEffect')
     const endInningButton = document.getElementById('end-inning')
     endInningButton.disabled = true
   }, [])
