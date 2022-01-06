@@ -8,7 +8,7 @@ import FormControlLabel from '@mui/material/FormControlLabel'
 import Modal from '@mui/material/Modal'
 import Radio from '@mui/material/Radio'
 import RadioGroup from '@mui/material/RadioGroup'
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { BATTING, OUT } from '../constants/BattingStatus'
 import { BOLD, CATCH, HIT_WICKET, RUN_OUT, STUMP } from '../constants/OutType'
 import MathUtil from '../util/MathUtil'
@@ -39,6 +39,7 @@ const ScoreBoard = () => {
   const [runOutPlayerId, setRunOutPlayerId] = React.useState('')
   const [remainingBalls, setRemainingBalls] = useState(0)
   const [remainingRuns, setRemainingRuns] = useState(0)
+  const [selectedValue, setSelectedValue] = React.useState('strike')
 
   let data = JSON.parse(localStorage.getItem('data'))
   const { batting, team1, team2 } = data
@@ -116,12 +117,7 @@ const ScoreBoard = () => {
     const batter2NameElement = document.getElementById('batter2Name')
     batter2NameElement.value = ''
     batter2NameElement.disabled = false
-    const strikeElement = document.getElementById('strike')
-    strikeElement.textContent = '*'
-    strikeElement.className = 'strike'
-    const nonStrikeElement = document.getElementById('non-strike')
-    nonStrikeElement.textContent = ''
-    nonStrikeElement.className = 'non-strike'
+    setSelectedValue('strike')
     const endInningButton = document.getElementById('end-inning')
     endInningButton.disabled = true
   }
@@ -253,12 +249,21 @@ const ScoreBoard = () => {
     }
   }
   const changeStrike = () => {
-    const strikeElement = document.querySelector('.strike')
-    const nonStrikeElement = document.querySelector('.non-strike')
-    strikeElement.textContent = ''
-    strikeElement.className = 'non-strike'
-    nonStrikeElement.textContent = '*'
-    nonStrikeElement.className = 'strike'
+    setSelectedValue(selectedValue === 'strike' ? 'non-strike' : 'strike')
+  }
+  const switchBatterStrike = () => {
+    setBatter1((state) => ({
+      ...state,
+      onStrike: !state.onStrike,
+    }))
+    setBatter2((state) => ({
+      ...state,
+      onStrike: !state.onStrike,
+    }))
+  }
+  const handleStrikeChange = () => {
+    changeStrike()
+    switchBatterStrike()
   }
   const handleRun = (run) => {
     setBallCount(ballCount + 1)
@@ -306,14 +311,7 @@ const ScoreBoard = () => {
         }
       })
       if ((ballCount === 5 && run % 2 === 0) || (ballCount !== 5 && run % 2 !== 0)) {
-        setBatter1((state) => ({
-          ...state,
-          onStrike: !state.onStrike,
-        }))
-        setBatter2((state) => ({
-          ...state,
-          onStrike: !state.onStrike,
-        }))
+        switchBatterStrike()
       }
     } else {
       setBatter2((state) => {
@@ -338,14 +336,7 @@ const ScoreBoard = () => {
         }
       })
       if ((ballCount === 5 && run % 2 === 0) || (ballCount !== 5 && run % 2 !== 0)) {
-        setBatter2((state) => ({
-          ...state,
-          onStrike: !state.onStrike,
-        }))
-        setBatter1((state) => ({
-          ...state,
-          onStrike: !state.onStrike,
-        }))
+        switchBatterStrike()
       }
     }
   }
@@ -644,18 +635,26 @@ const ScoreBoard = () => {
           <table>
             <thead>
               <tr>
-                <td className='score-types'>Batting</td>
+                <td className='score-types padding-left'>Batting</td>
                 <td className='score-types'>Run(Ball)</td>
-                <td className='score-types'>4s</td>
-                <td className='score-types'>6s</td>
-                <td className='score-types'>SR</td>
+                <td className='score-types text-center'>4s</td>
+                <td className='score-types text-center'>6s</td>
+                <td className='score-types text-center'>SR</td>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td className='score-types'>
-                  <span id='strike' className='strike'>
-                    *
+                  <span id='strike'>
+                    <Radio
+                      size='small'
+                      checked={selectedValue === 'strike'}
+                      onChange={handleStrikeChange}
+                      value='strike'
+                      name='radio-buttons'
+                      inputProps={{ 'aria-label': 'strike' }}
+                      style={{ padding: '0 4px 0 2px' }}
+                    />
                   </span>
                   <input type='text' id='batter1Name' className='batter-name' onBlur={handleBatter1Blur} />
                   <IconButton color='primary' className='icon-button' onClick={editBatter1Name}>
@@ -669,7 +668,17 @@ const ScoreBoard = () => {
               </tr>
               <tr>
                 <td className='score-types'>
-                  <span id='non-strike' className='non-strike'></span>
+                  <span id='non-strike'>
+                    <Radio
+                      size='small'
+                      checked={selectedValue === 'non-strike'}
+                      onChange={handleStrikeChange}
+                      value='non-strike'
+                      name='radio-buttons'
+                      inputProps={{ 'aria-label': 'non-strike' }}
+                      style={{ padding: '0 4px 0 2px' }}
+                    />
+                  </span>
                   <input type='text' id='batter2Name' className='batter-name' onBlur={handleBatter2Blur} />
                   <IconButton color='primary' className='icon-button' onClick={editBatter2Name}>
                     <EditIcon className='icon-size' />

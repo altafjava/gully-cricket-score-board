@@ -115,11 +115,8 @@ table thead {
 .icon-size {
   font-size: 1rem !important;
 }
-.strike {
-  padding-right: 2px;
-}
-.non-strike {
-  padding-left: 0.56rem;
+.strike-icon-button {
+  padding: 0 !important;
 }
 .batter-name {
   max-width: 6rem;
@@ -153,4 +150,7 @@ table thead {
   border-left: 1px solid #ccc;
   font-weight: bold;
   padding: 0 2px;
+}
+.text-center {
+  text-align: center;
 }
