@@ -8,7 +8,7 @@ import FormControlLabel from '@mui/material/FormControlLabel'
 import Modal from '@mui/material/Modal'
 import Radio from '@mui/material/Radio'
 import RadioGroup from '@mui/material/RadioGroup'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { BATTING, OUT } from '../constants/BattingStatus'
 import { BOLD, CATCH, HIT_WICKET, RUN_OUT, STUMP } from '../constants/OutType'
 import MathUtil from '../util/MathUtil'
@@ -43,6 +43,12 @@ const ScoreBoard = () => {
   let data = JSON.parse(localStorage.getItem('data'))
   const { batting, team1, team2 } = data
   const maxOver = parseInt(data.maxOver)
+
+  useEffect(() => {
+    console.log('useEffect')
+    const endInningButton = document.getElementById('end-inning')
+    endInningButton.disabled = true
+  }, [])
 
   const handleEndInning = () => {
     const { id, name, run, ball, four, six, strikeRate, onStrike } = batter1
@@ -117,6 +123,8 @@ const ScoreBoard = () => {
     const nonStrikeElement = document.getElementById('non-strike')
     nonStrikeElement.textContent = ''
     nonStrikeElement.className = 'non-strike'
+    const endInningButton = document.getElementById('end-inning')
+    endInningButton.disabled = true
   }
   const handleBatter1Blur = (e) => {
     let name = e.target.value

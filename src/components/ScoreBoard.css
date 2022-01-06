@@ -6,10 +6,19 @@
   color: white;
   padding: 0.5rem;
   font-size: 1.2rem;
-  /* margin-bottom: 1rem; */
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+#end-inning {
+  height: 100%;
+  padding: 4px;
+  outline: none;
+  border: 1px solid #fff;
+}
+#end-inning:active {
+  color: #fff;
+  background-color: #3f51b5;
 }
 .score-container {
   margin: 0.5rem;

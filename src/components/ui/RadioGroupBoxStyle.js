@@ -1,6 +1,6 @@
 export const radioGroupBoxstyle = {
   position: 'absolute',
-  top: '57.5%',
+  top: '61%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
   width: 340,
