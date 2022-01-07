@@ -39,7 +39,7 @@ const ScoreBoard = () => {
   const [runOutPlayerId, setRunOutPlayerId] = React.useState('')
   const [remainingBalls, setRemainingBalls] = useState(0)
   const [remainingRuns, setRemainingRuns] = useState(0)
-  const [selectedValue, setSelectedValue] = React.useState('strike')
+  const [strikeValue, setStrikeValue] = React.useState('strike')
   const [isNoBall, setNoBall] = useState(false)
 
   let data = JSON.parse(localStorage.getItem('data'))
@@ -119,7 +119,7 @@ const ScoreBoard = () => {
     const batter2NameElement = document.getElementById('batter2Name')
     batter2NameElement.value = ''
     batter2NameElement.disabled = false
-    setSelectedValue('strike')
+    setStrikeValue('strike')
     const endInningButton = document.getElementById('end-inning')
     endInningButton.disabled = true
   }
@@ -250,8 +250,8 @@ const ScoreBoard = () => {
       bowlerNameElement.disabled = false
     }
   }
-  const changeStrike = () => {
-    setSelectedValue(selectedValue === 'strike' ? 'non-strike' : 'strike')
+  const changeStrikeRadio = () => {
+    setStrikeValue(strikeValue === 'strike' ? 'non-strike' : 'strike')
   }
   const switchBatterStrike = () => {
     setBatter1((state) => ({
@@ -264,7 +264,7 @@ const ScoreBoard = () => {
     }))
   }
   const handleStrikeChange = () => {
-    changeStrike()
+    changeStrikeRadio()
     switchBatterStrike()
   }
   const handleRun = (run) => {
@@ -284,21 +284,25 @@ const ScoreBoard = () => {
       setRemainingRuns(remainingRuns - run)
     }
     if (ballCount === 5) {
-      if (!isNoBall) {
+      if (isNoBall) {
+        if (run % 2 !== 0) {
+          changeStrikeRadio()
+        }
+      } else {
         setTotalOvers(overCount + 1)
         const arr = [...currentRunStack]
         arr.push(run)
         overCompleted(runsByOver + run, arr)
         if (run % 2 === 0) {
-          changeStrike()
+          changeStrikeRadio()
         }
       }
     } else {
       if (!isNoBall) {
         setTotalOvers(Math.round((totalOvers + 0.1) * 10) / 10)
-        if (run % 2 !== 0) {
-          changeStrike()
-        }
+      }
+      if (run % 2 !== 0) {
+        changeStrikeRadio()
       }
     }
     if (batter1.onStrike) {
@@ -323,8 +327,14 @@ const ScoreBoard = () => {
           strikeRate: sr,
         }
       })
-      if (((ballCount === 5 && run % 2 === 0) || (ballCount !== 5 && run % 2 !== 0)) && !isNoBall) {
-        switchBatterStrike()
+      if (isNoBall) {
+        if (ballCount === 5 && run % 2 !== 0) {
+          switchBatterStrike()
+        }
+      } else {
+        if ((ballCount === 5 && run % 2 === 0) || (ballCount !== 5 && run % 2 !== 0)) {
+          switchBatterStrike()
+        }
       }
     } else {
       setBatter2((state) => {
@@ -348,7 +358,7 @@ const ScoreBoard = () => {
           strikeRate: sr,
         }
       })
-      if (((ballCount === 5 && run % 2 === 0) || (ballCount !== 5 && run % 2 !== 0)) && !isNoBall) {
+      if ((ballCount === 5 && run % 2 === 0) || (ballCount !== 5 && run % 2 !== 0)) {
         switchBatterStrike()
       }
     }
@@ -712,7 +722,7 @@ const ScoreBoard = () => {
                   <span id='strike'>
                     <Radio
                       size='small'
-                      checked={selectedValue === 'strike'}
+                      checked={strikeValue === 'strike'}
                       onChange={handleStrikeChange}
                       value='strike'
                       name='radio-buttons'
@@ -735,7 +745,7 @@ const ScoreBoard = () => {
                   <span id='non-strike'>
                     <Radio
                       size='small'
-                      checked={selectedValue === 'non-strike'}
+                      checked={strikeValue === 'non-strike'}
                       onChange={handleStrikeChange}
                       value='non-strike'
                       name='radio-buttons'
