@@ -83,13 +83,14 @@ const ScoreBoard = () => {
       return {
         ...state,
         inning1: {
-          run: totalRuns,
+          runs: totalRuns,
           wickets: wicketCount,
           runRate: crr,
           overs: totalOvers,
           four: totalFours,
           six: totalSixes,
           extra: extras,
+          batters: batters,
         },
       }
     })
@@ -528,27 +529,13 @@ const ScoreBoard = () => {
   if (batter1.name !== undefined && batter2.name !== undefined && bowler !== '') {
     enableAllScoreButtons()
   }
+  const inning1 = match.inning1
   const target = (match && match.inning1 && match.inning1.run + 1) === undefined ? 0 : match.inning1.run + 1
   let rrr = (remainingRuns / (remainingBalls / 6)).toFixed(2)
   rrr = isFinite(rrr) ? rrr : 0
   const overs = overCount + ballCount / 6
   let crr = (totalRuns / overs).toFixed(2)
   crr = isFinite(crr) ? crr : 0
-
-  const welcomeContent = (
-    <>
-      <div></div>
-      <div>Welcome to Gully Cricket Score Board</div>
-      <div></div>
-    </>
-  )
-  const firstInningCompletedContent = (
-    <>
-      {overCount === maxOver && <div>1st inning completed</div>}
-      {wicketCount === 10 && <div>All Out</div>}
-      <div>Please click "End Inning" button</div>
-    </>
-  )
 
   const scoringTeam = batting === team1 ? team1 : team2
   const chessingTeam = scoringTeam === team1 ? team2 : team1
@@ -569,6 +556,20 @@ const ScoreBoard = () => {
       endMatch()
     }
   }
+  const welcomeContent = (
+    <>
+      <div></div>
+      <div>Welcome to Gully Cricket Score Board</div>
+      <div></div>
+    </>
+  )
+  const firstInningCompletedContent = (
+    <>
+      {overCount === maxOver && <div>1st inning completed</div>}
+      {wicketCount === 10 && <div>All Out</div>}
+      <div>Please click "End Inning" button</div>
+    </>
+  )
   const remainingRunsContent = (
     <>
       <div>Target: {target}</div>
@@ -576,7 +577,6 @@ const ScoreBoard = () => {
       <div>RRR: {isNaN(rrr) ? 0 : rrr}</div>
     </>
   )
-
   return (
     <div className='container'>
       <div className='inning'>
@@ -700,7 +700,7 @@ const ScoreBoard = () => {
             <thead>
               <tr>
                 <td className='score-types padding-left'>Batting</td>
-                <td className='score-types'>Run(Ball)</td>
+                <td className='score-types'>R(B)</td>
                 <td className='score-types text-center'>4s</td>
                 <td className='score-types text-center'>6s</td>
                 <td className='score-types text-center'>SR</td>
@@ -855,6 +855,52 @@ const ScoreBoard = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+        <div className='score-board-container'>
+          <div className='score-board-text text-center'>Score Board</div>
+          <div>
+            <div className='score-board-innings'>
+              <div>{scoringTeam} Innings</div>
+              <div>RR:{inningNo === 1 ? crr : inning1.runRate}</div>
+              <div>
+                {inningNo === 1 ? totalRuns : inning1.runs}-{inningNo === 1 ? wicketCount : inning1.wickets} (
+                {inningNo === 1 ? totalOvers : inning1.overs} Ov)
+              </div>
+            </div>
+            <div className='sb-batting'>
+              <table>
+                <thead>
+                  <tr>
+                    <td className='score-types padding-left'>Batter</td>
+                    <td className='score-types'>R(B)</td>
+                    <td className='score-types text-center'>4s</td>
+                    <td className='score-types text-center'>6s</td>
+                    <td className='score-types text-center'>SR</td>
+                  </tr>
+                </thead>
+                <tbody>
+                  {batters.map((batter, i) => (
+                    <tr key={i}>
+                      <td className='score-types padding-left'>{batter.name}</td>
+                      <td className='score-types'>
+                        {batter.run}({batter.ball})
+                      </td>
+                      <td className='score-types text-center'>{batter.four}</td>
+                      <td className='score-types text-center'>{batter.six}</td>
+                      <td className='score-types text-center'>{batter.strikeRate}</td>
+                    </tr>
+                  ))}
+                  <tr>
+                    <td className='score-types padding-left'>Extras:</td>
+                    <td className='score-types'>{inningNo === 1 ? extras.total : inning1.extra.total}</td>
+                    <td className='score-types text-center'>wd:{inningNo === 1 ? extras.wide : inning1.extra.wide}</td>
+                    <td className='score-types text-center'>nb:{inningNo === 1 ? extras.noBall : inning1.extra.noBall}</td>
+                    <td className='score-types text-center'></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
