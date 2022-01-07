@@ -328,7 +328,7 @@ const ScoreBoard = () => {
         }
       })
       if (isNoBall) {
-        if (ballCount === 5 && run % 2 !== 0) {
+        if (run % 2 !== 0) {
           switchBatterStrike()
         }
       } else {
