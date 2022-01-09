@@ -119,6 +119,9 @@ table thead {
 .icon-size {
   font-size: 1rem !important;
 }
+.delete-icon-size {
+  font-size: 1.3rem !important;
+}
 .strike-icon-button {
   padding: 0 !important;
 }

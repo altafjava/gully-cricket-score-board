@@ -144,7 +144,7 @@ const ScoreBoard = () => {
         four: 0,
         six: 0,
         strikeRate: 0,
-        onStrike: true,
+        onStrike: strikeValue === 'strike' ? true : false,
         battingOrder: battingOrder + 1,
         battingStatus: BATTING,
       })
@@ -172,7 +172,7 @@ const ScoreBoard = () => {
         four: 0,
         six: 0,
         strikeRate: 0,
-        onStrike: false,
+        onStrike: strikeValue === 'non-strike' ? true : false,
         battingOrder: battingOrder + 1,
         battingStatus: BATTING,
       })
@@ -250,22 +250,235 @@ const ScoreBoard = () => {
       bowlerNameElement.disabled = false
     }
   }
-  const changeStrikeRadio = () => {
-    setStrikeValue(strikeValue === 'strike' ? 'non-strike' : 'strike')
+  const undoDelivery = () => {
+    if (currentRunStack.length > 0) {
+      const last = currentRunStack[currentRunStack.length - 1]
+      if (typeof last === 'number') {
+        const run = parseInt(last)
+        setTotalRuns(totalRuns - run)
+        setRunsByOver(runsByOver - run)
+        setBallCount(ballCount - 1)
+        setTotalOvers(Math.round((totalOvers - 0.1) * 10) / 10)
+        currentRunStack.pop()
+        setCurrentRunStack(currentRunStack)
+        if (batter1.onStrike) {
+          if (run % 2 === 0) {
+            setBatter1((state) => {
+              const updatedRun = state.run - run
+              const updatedBall = state.ball - 1
+              const updatedSr = updatedRun / updatedBall
+              const sr = Math.round(isNaN(updatedSr) ? 0 : updatedSr * 100 * 100) / 100
+              let four = state.four
+              if (run === 4) {
+                four = four - 1
+              }
+              let six = state.six
+              if (run === 6) {
+                six = six - 1
+              }
+              return {
+                ...state,
+                run: updatedRun,
+                ball: updatedBall,
+                four: four,
+                six: six,
+                strikeRate: sr,
+              }
+            })
+          } else {
+            changeStrikeRadio()
+            switchBatterStrike()
+            setBatter2((state) => {
+              const updatedRun = state.run - run
+              const updatedBall = state.ball - 1
+              const updatedSr = updatedRun / updatedBall
+              const sr = Math.round(isNaN(updatedSr) ? 0 : updatedSr * 100 * 100) / 100
+              let four = state.four
+              if (run === 4) {
+                four = four - 1
+              }
+              let six = state.six
+              if (run === 6) {
+                six = six - 1
+              }
+              return {
+                ...state,
+                run: updatedRun,
+                ball: updatedBall,
+                four: four,
+                six: six,
+                strikeRate: sr,
+              }
+            })
+          }
+        } else if (batter2.onStrike) {
+          if (run % 2 === 0) {
+            setBatter2((state) => {
+              const updatedRun = state.run - run
+              const updatedBall = state.ball - 1
+              const updatedSr = updatedRun / updatedBall
+              const sr = Math.round(isNaN(updatedSr) ? 0 : updatedSr * 100 * 100) / 100
+              let four = state.four
+              if (run === 4) {
+                four = four - 1
+              }
+              let six = state.six
+              if (run === 6) {
+                six = six - 1
+              }
+              return {
+                ...state,
+                run: updatedRun,
+                ball: updatedBall,
+                four: four,
+                six: six,
+                strikeRate: sr,
+              }
+            })
+          } else {
+            changeStrikeRadio()
+            switchBatterStrike()
+            setBatter1((state) => {
+              const updatedRun = state.run - run
+              const updatedBall = state.ball - 1
+              const updatedSr = updatedRun / updatedBall
+              const sr = Math.round(isNaN(updatedSr) ? 0 : updatedSr * 100 * 100) / 100
+              let four = state.four
+              if (run === 4) {
+                four = four - 1
+              }
+              let six = state.six
+              if (run === 6) {
+                six = six - 1
+              }
+              return {
+                ...state,
+                run: updatedRun,
+                ball: updatedBall,
+                four: four,
+                six: six,
+                strikeRate: sr,
+              }
+            })
+          }
+        }
+      } else {
+        currentRunStack.pop()
+        setCurrentRunStack(currentRunStack)
+        if (last === 'wd') {
+          setTotalRuns(totalRuns - 1)
+          setExtras((state) => ({
+            ...state,
+            total: state.total - 1,
+            wide: state.wide - 1,
+          }))
+        } else if (last === 'W') {
+          setBallCount(ballCount - 1)
+          setWicketCount(wicketCount - 1)
+          setTotalOvers(Math.round((totalOvers - 0.1) * 10) / 10)
+          const batter = batters[batters.length - 1]
+          const { id, name, run, ball, four, six, strikeRate, onStrike } = batter
+          if (batter1.name === undefined || batter1.onStrike) {
+            const batter1NameElement = document.getElementById('batter1Name')
+            batter1NameElement.value = batter.name
+            batter1NameElement.disabled = true
+            setBatter1({
+              id,
+              name,
+              run,
+              ball,
+              four,
+              six,
+              strikeRate,
+              onStrike,
+              battingOrder: batter.battingOrder,
+              battingStatus: BATTING,
+            })
+            if (!batter.onStrike) {
+              changeStrikeRadio()
+              setBatter2((state) => ({
+                ...state,
+                onStrike: true,
+              }))
+            }
+          } else if (batter2.name === undefined || batter2.onStrike) {
+            const batter2NameElement = document.getElementById('batter2Name')
+            batter2NameElement.value = batter.name
+            batter2NameElement.disabled = true
+            setBatter2({
+              id,
+              name,
+              run,
+              ball,
+              four,
+              six,
+              strikeRate,
+              onStrike,
+              battingOrder: batter.battingOrder,
+              battingStatus: BATTING,
+            })
+            if (!batter.onStrike) {
+              changeStrikeRadio()
+              setBatter1((state) => ({
+                ...state,
+                onStrike: true,
+              }))
+            }
+          }
+          batters.pop()
+          setBatters(batters)
+        } else {
+          console.log('else noBall')
+        }
+      }
+    }
   }
-  const switchBatterStrike = () => {
-    setBatter1((state) => ({
-      ...state,
-      onStrike: !state.onStrike,
-    }))
-    setBatter2((state) => ({
-      ...state,
-      onStrike: !state.onStrike,
-    }))
+  const handleStrikeChange = (e) => {
+    changeStrikeRadio(e.target.value)
+    if (e.target.value === 'strike') {
+      switchBatterStrike('batter1')
+    } else {
+      switchBatterStrike('batter2')
+    }
   }
-  const handleStrikeChange = () => {
-    changeStrikeRadio()
-    switchBatterStrike()
+  const changeStrikeRadio = (strikeParam) => {
+    if (strikeParam === undefined) {
+      setStrikeValue(strikeValue === 'strike' ? 'non-strike' : 'strike')
+    } else {
+      setStrikeValue(strikeParam)
+    }
+  }
+  const switchBatterStrike = (strikeParam) => {
+    if (strikeParam === undefined) {
+      setBatter1((state) => ({
+        ...state,
+        onStrike: !state.onStrike,
+      }))
+      setBatter2((state) => ({
+        ...state,
+        onStrike: !state.onStrike,
+      }))
+    } else {
+      if (strikeParam === 'batter1') {
+        setBatter1((state) => ({
+          ...state,
+          onStrike: true,
+        }))
+        setBatter2((state) => ({
+          ...state,
+          onStrike: false,
+        }))
+      } else if (strikeParam === 'batter2') {
+        setBatter1((state) => ({
+          ...state,
+          onStrike: false,
+        }))
+        setBatter2((state) => ({
+          ...state,
+          onStrike: true,
+        }))
+      }
+    }
   }
   const handleRun = (run) => {
     if (isNoBall) {
@@ -449,8 +662,12 @@ const ScoreBoard = () => {
     if (isRunOut) {
       if (batter1.id === playerId) {
         newBatter1()
+        changeStrikeRadio('strike')
+        switchBatterStrike('batter1')
       } else {
         newBatter2()
+        changeStrikeRadio('non-strike')
+        switchBatterStrike('batter2')
       }
     } else {
       if (!isNoBall) {
@@ -539,20 +756,19 @@ const ScoreBoard = () => {
   if (batter1.name !== undefined && batter2.name !== undefined && bowler !== '') {
     enableAllScoreButtons()
   }
-  const inning1 = match.inning1
-  const target = (match && match.inning1 && match.inning1.run + 1) === undefined ? 0 : match.inning1.run + 1
   let rrr = (remainingRuns / (remainingBalls / 6)).toFixed(2)
   rrr = isFinite(rrr) ? rrr : 0
   const overs = overCount + ballCount / 6
   let crr = (totalRuns / overs).toFixed(2)
   crr = isFinite(crr) ? crr : 0
-
+  const inning1 = match.inning1
   const scoringTeam = batting === team1 ? team1 : team2
   const chessingTeam = scoringTeam === team1 ? team2 : team1
   let winningMessage = `${inningNo === 1 ? scoringTeam : chessingTeam} needs ${remainingRuns} ${
     remainingRuns <= 1 ? 'run' : 'runs'
   } in ${remainingBalls} ${remainingBalls <= 1 ? 'ball' : 'balls'} to win`
   if (inningNo === 2) {
+    var target = inning1.runs + 1
     if (wicketCount < 10 && overCount <= maxOver && totalRuns >= target) {
       winningMessage = `${chessingTeam} won by ${10 - wicketCount} wickets`
       endMatch()
@@ -777,8 +993,8 @@ const ScoreBoard = () => {
             {currentRunStack.map((run, i) => (
               <div key={i}>{run}</div>
             ))}
-            <IconButton color='warning' className='icon-button'>
-              <DeleteIcon className='icon-size' />
+            <IconButton color='warning' className='icon-button' onClick={undoDelivery}>
+              <DeleteIcon className='delete-icon-size' />
             </IconButton>
           </div>
         </div>
@@ -890,17 +1106,19 @@ const ScoreBoard = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {batters.map((batter, i) => (
-                    <tr key={i}>
-                      <td className='score-types padding-left'>{batter.name}</td>
-                      <td className='score-types'>
-                        {batter.run}({batter.ball})
-                      </td>
-                      <td className='score-types text-center'>{batter.four}</td>
-                      <td className='score-types text-center'>{batter.six}</td>
-                      <td className='score-types text-center'>{batter.strikeRate}</td>
-                    </tr>
-                  ))}
+                  {batters.map((batter, i) => {
+                    return (
+                      <tr key={i}>
+                        <td className='score-types padding-left'>{batter.name}</td>
+                        <td className='score-types'>
+                          {batter.run}({batter.ball})
+                        </td>
+                        <td className='score-types text-center'>{batter.four}</td>
+                        <td className='score-types text-center'>{batter.six}</td>
+                        <td className='score-types text-center'>{batter.strikeRate}</td>
+                      </tr>
+                    )
+                  })}
                   <tr>
                     <td className='score-types padding-left'>Extras:</td>
                     <td className='score-types'>{inningNo === 1 ? extras.total : inning1.extra.total}</td>
