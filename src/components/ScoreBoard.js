@@ -9,6 +9,7 @@ import Modal from '@mui/material/Modal'
 import Radio from '@mui/material/Radio'
 import RadioGroup from '@mui/material/RadioGroup'
 import React, { useEffect, useState } from 'react'
+import Autosuggest from 'react-autosuggest'
 import { BATTING, OUT } from '../constants/BattingStatus'
 import { BOLD, CATCH, HIT_WICKET, RUN_OUT, STUMP } from '../constants/OutType'
 import MathUtil from '../util/MathUtil'
@@ -31,9 +32,12 @@ const ScoreBoard = () => {
   const [batter1, setBatter1] = useState({})
   const [batter2, setBatter2] = useState({})
   const [battingOrder, setBattingOrder] = useState(0)
-  const [bowler, setBowler] = useState('')
   const [isBatter1Edited, setBatter1Edited] = useState(false)
   const [isBatter2Edited, setBatter2Edited] = useState(false)
+  const [isBowlerEdited, setBowlerEdited] = useState(false)
+  const [bowler, setBowler] = useState({})
+  const [bowlers, setBowlers] = useState([])
+  const [inputBowler, setInputBowler] = useState('')
   const [isModalOpen, setModalOpen] = React.useState(false)
   const [outType, setOutType] = React.useState('')
   const [runOutPlayerId, setRunOutPlayerId] = React.useState('')
@@ -41,6 +45,8 @@ const ScoreBoard = () => {
   const [remainingRuns, setRemainingRuns] = useState(0)
   const [strikeValue, setStrikeValue] = React.useState('strike')
   const [isNoBall, setNoBall] = useState(false)
+  const [suggestions, setSuggestions] = useState([])
+  const [hasNameSuggested, setNameSuggested] = useState(false)
 
   let data = JSON.parse(localStorage.getItem('data'))
   const { batting, team1, team2 } = data
@@ -52,31 +58,95 @@ const ScoreBoard = () => {
   }, [])
 
   const handleEndInning = () => {
-    const { id, name, run, ball, four, six, strikeRate, onStrike } = batter1
-    batters.push({
-      id,
-      name,
-      run,
-      ball,
-      four,
-      six,
-      strikeRate,
-      onStrike,
-      battingOrder: batter1.battingOrder,
-      battingStatus: BATTING,
-    })
-    batters.push({
-      id: batter2.id,
-      name: batter2.name,
-      run: batter2.run,
-      ball: batter2.ball,
-      four: batter2.four,
-      six: batter2.six,
-      strikeRate: batter2.strikeRate,
-      onStrike: batter2.onStrike,
-      battingOrder: batter2.battingOrder,
-      battingStatus: BATTING,
-    })
+    if (batter1.id !== undefined) {
+      const { id, name, run, ball, four, six, strikeRate, onStrike } = batter1
+      batters.push({
+        id,
+        name,
+        run,
+        ball,
+        four,
+        six,
+        strikeRate,
+        onStrike,
+        battingOrder: batter1.battingOrder,
+        battingStatus: BATTING,
+      })
+    }
+    if (batter2.id !== undefined) {
+      batters.push({
+        id: batter2.id,
+        name: batter2.name,
+        run: batter2.run,
+        ball: batter2.ball,
+        four: batter2.four,
+        six: batter2.six,
+        strikeRate: batter2.strikeRate,
+        onStrike: batter2.onStrike,
+        battingOrder: batter2.battingOrder,
+        battingStatus: BATTING,
+      })
+    }
+    if (bowler.id !== undefined) {
+      const currentDisplayOver = Math.round((ballCount === 6 ? 1 : ballCount * 0.1) * 10) / 10
+      let isMaidenOver = true
+      let countWicket = 0
+      let countNoBall = 0
+      let countWide = 0
+      const deliveries = ['1', '2', '3', '4', '6', 'wd']
+      for (let delivery of currentRunStack) {
+        delivery = delivery.toString()
+        if (deliveries.includes(delivery) || delivery.includes('nb')) {
+          isMaidenOver = false
+        }
+        if (delivery === 'W') {
+          countWicket++
+        }
+        if (delivery.includes('nb')) {
+          countNoBall++
+        }
+        if (delivery.includes('wd')) {
+          countWide++
+        }
+      }
+      if (ballCount !== 6) {
+        isMaidenOver = false
+      }
+      const index = bowlers.findIndex((blr) => {
+        return blr.id === bowler.id
+      })
+      if (index !== -1) {
+        const existingBowler = bowlers[index]
+        const { maiden, wicket, noBall, wide, over } = existingBowler
+        const bowlerTotalOver = over + ballCount / 6
+        existingBowler.over = existingBowler.over + currentDisplayOver
+        existingBowler.maiden = isMaidenOver ? maiden + 1 : maiden
+        existingBowler.run = existingBowler.run + runsByOver
+        existingBowler.wicket = wicket + countWicket
+        existingBowler.noBall = noBall + countNoBall
+        existingBowler.wide = wide + countWide
+        existingBowler.economy = Math.round((existingBowler.run / bowlerTotalOver) * 100) / 100
+        bowlers[index] = existingBowler
+        setBowlers(bowlers)
+      } else {
+        if (ballCount !== 6) {
+          setBowlers((state) => [
+            ...state,
+            {
+              id: bowler.id,
+              name: bowler.name,
+              over: currentDisplayOver,
+              maiden: isMaidenOver ? 1 : 0,
+              run: runsByOver,
+              wicket: countWicket,
+              noBall: countNoBall,
+              wide: countWide,
+              economy: runsByOver,
+            },
+          ])
+        }
+      }
+    }
     setMatch((state) => {
       const totalFours = batters.map((batter) => batter.four).reduce((prev, next) => prev + next)
       const totalSixes = batters.map((batter) => batter.four).reduce((prev, next) => prev + next)
@@ -107,11 +177,12 @@ const ScoreBoard = () => {
     setBatter1({})
     setBatter2({})
     setBattingOrder(0)
-    setBowler('')
+    setInputBowler('')
+    setBowler({})
     setRemainingBalls(maxOver * 6)
     setRemainingRuns(totalRuns + 1)
-    const bowlerNameElement = document.getElementById('bowlerName')
-    bowlerNameElement.value = ''
+    const bowlerNameElement = document.querySelector('.react-autosuggest__input')
+    // bowlerNameElement.value = ''
     bowlerNameElement.disabled = false
     const batter1NameElement = document.getElementById('batter1Name')
     batter1NameElement.value = ''
@@ -181,10 +252,119 @@ const ScoreBoard = () => {
   }
   const handleBowlerBlur = (e) => {
     let name = e.target.value
-    name = name.charAt(0).toUpperCase() + name.slice(1)
-    e.target.value = name
-    e.target.disabled = true
-    setBowler(name)
+    if (name !== '') {
+      name = name.charAt(0).toUpperCase() + name.slice(1)
+      setInputBowler(name)
+      e.target.value = name
+      e.target.disabled = true
+      if (isBowlerEdited) {
+        setBowler((state) => ({
+          ...state,
+          name: name,
+        }))
+        setBowlerEdited(false)
+      } else {
+        if (hasNameSuggested) {
+          setNameSuggested(false)
+        } else {
+          const randomNo = MathUtil.getRandomNo()
+          const id = name + randomNo
+          setBowler({
+            id,
+            name,
+          })
+        }
+      }
+    }
+  }
+  const onSuggestionsFetchRequested = (param) => {
+    const inputValue = param.value.trim().toLowerCase()
+    const suggestionArr = inputValue.length === 0 ? [] : bowlers.filter((bowlerObj) => bowlerObj.name.toLowerCase().includes(inputValue))
+    setSuggestions(suggestionArr)
+  }
+  const getSuggestionValue = (suggestion) => {
+    setBowler({
+      id: suggestion.id,
+      name: suggestion.name,
+    })
+    setNameSuggested(true)
+    return suggestion.name
+  }
+  const inputProps = {
+    value: inputBowler,
+    onChange: (e, { newValue }) => {
+      setInputBowler(newValue)
+    },
+    onBlur: handleBowlerBlur,
+  }
+  const overCompleted = (runsByOverParam, currentRunStackParam) => {
+    const bowlerNameElement = document.querySelector('.react-autosuggest__input')
+    if (overCount + 1 === maxOver) {
+      const endInningButton = document.getElementById('end-inning')
+      endInningButton.disabled = false
+    } else {
+      bowlerNameElement.disabled = false
+    }
+    disableAllScoreButtons()
+    setRecentOvers((state) => [
+      ...state,
+      { overNo: overCount + 1, bowler: bowler.name, runs: runsByOverParam, stack: currentRunStackParam },
+    ])
+    setInputBowler('')
+    setBowler({})
+    setCurrentRunStack([])
+    setRunsByOver(0)
+    setBallCount(0)
+    setOverCount(overCount + 1)
+    const index = bowlers.findIndex((blr) => blr.id === bowler.id)
+    let isMaidenOver = true
+    let countWicket = 0
+    let countNoBall = 0
+    let countWide = 0
+    const deliveries = ['1', '2', '3', '4', '6', 'wd']
+    for (let delivery of currentRunStackParam) {
+      delivery = delivery.toString()
+      if (deliveries.includes(delivery) || delivery.includes('nb')) {
+        isMaidenOver = false
+      }
+      if (delivery === 'W') {
+        countWicket++
+      }
+      if (delivery.includes('nb')) {
+        countNoBall++
+      }
+      if (delivery.includes('wd')) {
+        countWide++
+      }
+    }
+    if (index !== -1) {
+      const existingBowler = bowlers[index]
+      const { over, maiden, run, wicket, noBall, wide } = existingBowler
+      existingBowler.over = over + 1
+      existingBowler.maiden = isMaidenOver ? maiden + 1 : maiden
+      existingBowler.run = run + runsByOverParam
+      existingBowler.wicket = wicket + countWicket
+      existingBowler.noBall = noBall + countNoBall
+      existingBowler.wide = wide + countWide
+      existingBowler.economy = Math.round((existingBowler.run / existingBowler.over) * 100) / 100
+      bowlers[index] = existingBowler
+      setBowlers(bowlers)
+    } else {
+      setBowlers((state) => [
+        ...state,
+        {
+          id: bowler.id,
+          name: bowler.name,
+          over: 1,
+          maiden: isMaidenOver ? 1 : 0,
+          run: runsByOverParam,
+          wicket: countWicket,
+          noBall: countNoBall,
+          wide: countWide,
+          economy: runsByOverParam,
+        },
+      ])
+    }
   }
   const newBatter1 = () => {
     const batter1NameElement = document.getElementById('batter1Name')
@@ -231,23 +411,24 @@ const ScoreBoard = () => {
     setBatter2({})
   }
   const editBatter1Name = () => {
-    if (overCount !== maxOver) {
+    if (overCount !== maxOver && wicketCount !== 2) {
       const batter1NameElement = document.getElementById('batter1Name')
       batter1NameElement.disabled = false
       setBatter1Edited(true)
     }
   }
   const editBatter2Name = () => {
-    if (overCount !== maxOver) {
+    if (overCount !== maxOver && wicketCount !== 2) {
       const batter2NameElement = document.getElementById('batter2Name')
       batter2NameElement.disabled = false
       setBatter2Edited(true)
     }
   }
   const editBowlerName = () => {
-    if (overCount !== maxOver) {
-      const bowlerNameElement = document.getElementById('bowlerName')
+    if (overCount !== maxOver && wicketCount !== 2) {
+      const bowlerNameElement = document.querySelector('.react-autosuggest__input')
       bowlerNameElement.disabled = false
+      setBowlerEdited(true)
     }
   }
   const undoWicket = (isNoBallParam) => {
@@ -702,14 +883,28 @@ const ScoreBoard = () => {
       }
     }
     if (isNoBall) {
-      if (isRunOut && wicketCount + 1 === 10) {
+      if (isRunOut && wicketCount + 1 === 2) {
         const endInningButton = document.getElementById('end-inning')
         endInningButton.disabled = false
+        const bowlerNameElement = document.querySelector('.react-autosuggest__input')
+        bowlerNameElement.disabled = true
+        const batter1NameElement = document.getElementById('batter1Name')
+        batter1NameElement.disabled = true
+        const batter2NameElement = document.getElementById('batter2Name')
+        batter2NameElement.disabled = true
+        setInputBowler('')
       }
     } else {
-      if (wicketCount + 1 === 10) {
+      if (wicketCount + 1 === 2) {
         const endInningButton = document.getElementById('end-inning')
         endInningButton.disabled = false
+        const bowlerNameElement = document.querySelector('.react-autosuggest__input')
+        bowlerNameElement.disabled = true
+        const batter1NameElement = document.getElementById('batter1Name')
+        batter1NameElement.disabled = true
+        const batter2NameElement = document.getElementById('batter2Name')
+        batter2NameElement.disabled = true
+        setInputBowler('')
       }
     }
   }
@@ -746,23 +941,6 @@ const ScoreBoard = () => {
   const endMatch = () => {
     disableAllScoreButtons()
   }
-  const overCompleted = (runsByOverParam, currentRunStackParam) => {
-    const bowlerNameElement = document.getElementById('bowlerName')
-    bowlerNameElement.value = ''
-    setBowler('')
-    if (overCount + 1 === maxOver) {
-      const endInningButton = document.getElementById('end-inning')
-      endInningButton.disabled = false
-    } else {
-      bowlerNameElement.disabled = false
-    }
-    disableAllScoreButtons()
-    setRecentOvers((state) => [...state, { overNo: overCount + 1, bowler: bowler, runs: runsByOverParam, stack: currentRunStackParam }])
-    setCurrentRunStack([])
-    setRunsByOver(0)
-    setBallCount(0)
-    setOverCount(overCount + 1)
-  }
   const disableAllScoreButtons = () => {
     const scoreTypesButtons = document.querySelectorAll('.score-types-button')
     for (let i = 0; i < scoreTypesButtons.length; i++) {
@@ -775,8 +953,7 @@ const ScoreBoard = () => {
       scoreTypesButtons[i].disabled = false
     }
   }
-
-  if (batter1.name !== undefined && batter2.name !== undefined && bowler !== '') {
+  if (batter1.name !== undefined && batter2.name !== undefined && inputBowler !== '') {
     enableAllScoreButtons()
   }
   let rrr = (remainingRuns / (remainingBalls / 6)).toFixed(2)
@@ -815,7 +992,7 @@ const ScoreBoard = () => {
   const firstInningCompletedContent = (
     <>
       {overCount === maxOver && <div>1st inning completed</div>}
-      {wicketCount === 10 && <div>All Out</div>}
+      {wicketCount === 2 && <div>All Out</div>}
       <div>Please click "End Inning" button</div>
     </>
   )
@@ -839,7 +1016,7 @@ const ScoreBoard = () => {
         </div>
       </div>
       <div id='badge' className='badge badge-flex'>
-        {inningNo === 2 ? remainingRunsContent : overCount === maxOver || wicketCount === 10 ? firstInningCompletedContent : welcomeContent}
+        {inningNo === 2 ? remainingRunsContent : overCount === maxOver || wicketCount === 2 ? firstInningCompletedContent : welcomeContent}
       </div>
       <div className='score-container'>
         <div>
@@ -1007,7 +1184,17 @@ const ScoreBoard = () => {
         </div>
         <div className='bowler-container'>
           <div className='bowler'>
-            Bowler: <input type='text' id='bowlerName' className='batter-name' onBlur={handleBowlerBlur} />
+            Bowler:
+            <Autosuggest
+              suggestions={suggestions}
+              onSuggestionsFetchRequested={onSuggestionsFetchRequested}
+              onSuggestionsClearRequested={() => {
+                setSuggestions([])
+              }}
+              getSuggestionValue={getSuggestionValue}
+              renderSuggestion={(suggestion) => <div>{suggestion.name}</div>}
+              inputProps={inputProps}
+            />
             <IconButton color='primary' className='icon-button' onClick={editBowlerName}>
               <EditIcon className='icon-size' />
             </IconButton>
@@ -1149,6 +1336,40 @@ const ScoreBoard = () => {
                     <td className='score-types text-center'>nb:{inningNo === 1 ? extras.noBall : inning1.extra.noBall}</td>
                     <td className='score-types text-center'></td>
                   </tr>
+                </tbody>
+              </table>
+            </div>
+            <div className='sb-bowling'>
+              <table>
+                <thead>
+                  <tr>
+                    <td className='score-types padding-left'>Bowler</td>
+                    <td className='score-types'>O</td>
+                    <td className='score-types text-center'>M</td>
+                    <td className='score-types text-center'>R</td>
+                    <td className='score-types text-center'>W</td>
+                    <td className='score-types text-center'>NB</td>
+                    <td className='score-types text-center'>WD</td>
+                    <td className='score-types text-center'>ECO</td>
+                  </tr>
+                </thead>
+                <tbody>
+                  {bowlers.map((blr, i) => {
+                    const { name, over, maiden, run, wicket, noBall, wide, economy } = blr
+
+                    return (
+                      <tr key={i}>
+                        <td className='score-types padding-left'>{name}</td>
+                        <td className='score-types'>{over}</td>
+                        <td className='score-types text-center'>{maiden}</td>
+                        <td className='score-types text-center'>{run}</td>
+                        <td className='score-types text-center'>{wicket}</td>
+                        <td className='score-types text-center'>{noBall}</td>
+                        <td className='score-types text-center'>{wide}</td>
+                        <td className='score-types text-center'>{economy}</td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
