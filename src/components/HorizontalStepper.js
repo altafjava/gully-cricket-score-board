@@ -123,7 +123,7 @@ const HorizontalStepper = () => {
           }}
         >
           {(prp) => {
-            const { values, touched, errors, handleChange, handleBlur, handleSubmit, handleReset, setFieldValue } = prp
+            const { values, touched, errors, handleChange, handleBlur, handleSubmit, setFieldValue } = prp
             return (
               <form onSubmit={handleSubmit}>
                 <div className={classes.formContainer}>
@@ -200,33 +200,12 @@ const HorizontalStepper = () => {
                     </div>
                   )}
                   <div>
-                    {activeStep === steps.length ? (
-                      <div className={classes.resetContainer}>
-                        <Typography className={classes.instructions}>All steps completed</Typography>
-                        <pre>
-                          <p id='form__data'>myname islataf</p>
-                        </pre>
-                        <Button
-                          variant='contained'
-                          color='secondary'
-                          onClick={() => {
-                            handleReset()
-                            setActiveStep(0)
-                          }}
-                        >
-                          Reset
-                        </Button>
-                      </div>
-                    ) : (
-                      <div>
-                        <Button variant='contained' disabled={activeStep === 0} onClick={handleBack} className={classes.backButton}>
-                          Back
-                        </Button>
-                        <Button id='submit' disabled={isSubmitting} variant='contained' color='primary' type='submit'>
-                          {isLastStep() ? 'Start Game' : 'Next'}
-                        </Button>
-                      </div>
-                    )}
+                    <Button variant='contained' disabled={activeStep === 0} onClick={handleBack} className={classes.backButton}>
+                      Back
+                    </Button>
+                    <Button id='submit' disabled={isSubmitting} variant='contained' color='primary' type='submit'>
+                      {isLastStep() ? 'Start Game' : 'Next'}
+                    </Button>
                   </div>
                 </div>
               </form>
