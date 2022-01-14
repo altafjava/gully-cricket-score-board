@@ -1,4 +1,19 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## What is this?
+
+A gully cricket score board used to maintain the score of the team and individual players with runs, balls & strike rate including bowler's total over, maiden, runs given, economy, etc. This project was build using React JS and bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+
+## Recommendation
+
+This application is best viewed in Mobile/Phone browser.
+
+## Problem
+
+Currently data has been managed using state. Hence don't refresh the page until the completion of match otherwise all data will be gone. For that you can use android application which you can download from release section.
+
+## Is this live?
+
+Click this [link](https://gully-cricket.netlify.app/) to see the application running in Netlify.
+
 
 ## Available Scripts
 
